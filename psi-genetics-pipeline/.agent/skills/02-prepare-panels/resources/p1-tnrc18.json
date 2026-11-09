@@ -1,0 +1,43 @@
+{
+  "study_id": "P1_2021_TNRC18",
+  "title": "Genetics of psychic ability - A pilot case-control exome sequencing study",
+  "citation": "Wahbeh H, Radin D, Yount G, Woodley of Menie MA, Sarraf MA, Karpuj MV. EXPLORE 2021; 18(3):264-271 (2022).",
+  "doi": "10.1016/j.explore.2021.02.014",
+  "design": "Whole-exome sequencing, 13 self-described psychic cases vs 10 matched controls (9 analysed after QC).",
+  "target": {
+    "rsid": "rs117910193",
+    "gene": "TNRC18",
+    "hgvs_transcript": "NM_001080495.3:c.4533-59C>T (gene is on the minus strand; plus-strand change is G>A)",
+    "consequence": "intron_variant",
+    "GRCh37": {"chrom": "7", "pos": 5401412, "ref": "G", "alt": ["A", "T"]},
+    "GRCh38": {"chrom": "7", "pos": 5361781, "ref": "G", "alt": ["A", "T"]},
+    "study_alleles": ["G", "A"],
+    "reported_pattern": {
+      "cases": {"n_analysed": 13, "carriers_of_A": 0, "note": "All cases carried the reference (wild-type) sequence; GG is implied, not tabulated."},
+      "controls": {"n_analysed": 9, "GA": 7, "note": "The remaining 2 controls are not explicitly genotyped; AA is not mentioned."}
+    }
+  },
+  "proxy": {
+    "rsid": "rs78262442",
+    "r2_eur": 0.944417,
+    "dprime_eur": 0.977295,
+    "ld_source": "Ensembl REST LD, 1000GENOMES:phase_3:EUR",
+    "GRCh37": {"chrom": "7", "pos": 5400558, "ref": "C", "alt": ["A", "T"]},
+    "GRCh38": {"chrom": "7", "pos": 5360927, "ref": "C", "alt": ["A", "T"]},
+    "allele_pairing": "UNRESOLVED - run 03-resolve-proxy"
+  },
+  "population_af_alt_A": {
+    "gnomad_exomes_global": 0.1011,
+    "gnomad_exomes_nfe": 0.1078,
+    "gnomad_genomes_global": 0.074,
+    "gnomad_genomes_nfe": 0.1007,
+    "kg_phase3_global": 0.0555,
+    "kg_phase3_eur": 0.0984,
+    "note": "Values from the research report (Ensembl / MyVariant / dbSNP). gnomAD version labels were not verified."
+  },
+  "method_notes": [
+    "Original calls: hg19, STAR 2.5.2b alignment, SAMtools calling, variant quality >= 30.",
+    "The site is 59 bp into an intron at the edge of exome capture; original calls may rest on thin coverage.",
+    "No raw data or per-sample genotypes were published."
+  ]
+}

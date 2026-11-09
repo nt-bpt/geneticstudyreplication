@@ -1,0 +1,20 @@
+{
+  "study_id": "P2_2026_212SNP",
+  "title": "Genomic correlates of self-reported psychic experiences: An exploratory analysis",
+  "citation": "Wahbeh H, Delorme A, Cannard C, Rossner R, Yount G, Radin D. EXPLORE 2026; 22(4):103416.",
+  "doi": "10.1016/j.explore.2026.103416",
+  "design": "N = 102 adults with direct-to-consumer microarray files; Random Forest classifier (median split of PsiSum), permutation importance with 200,000 permutations, FDR < 0.05.",
+  "n_snps": 212,
+  "direction_known": false,
+  "scoring_possible": false,
+  "effect_size_meaning": "Unsigned standardized permutation importance (observed importance vs the permutation null mean and SD). It is not a beta or odds ratio and has no allele direction.",
+  "fdr_note": "The paper gives FDR-corrected p = 0.026 for all listed RSIDs except rs10410488 (0.000001).",
+  "genes_note": "Gene annotations exist only for the top 20 (main-text Table 3).",
+  "open_issues": [
+    "No risk allele or per-group genotype frequencies were published.",
+    "Genotype encoding, genome build and strand convention were not stated.",
+    "The paper reports 52 low + 52 high for N = 102.",
+    "No code, data or trained model was released."
+  ],
+  "contact": "Corresponding author: Helane Wahbeh (address printed in the paper)."
+}

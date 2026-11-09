@@ -1,0 +1,5 @@
+# Families the preprint names (Table 1 / Results). 7 further 'possible hybrid' families are not named in the text.
+HG01505   # 142 + 206 NPAs, chr3:75.5 Mb
+HG02293   # 27 NPAs, chr3:75.5 Mb
+HG02809   # 24 NPAs
+HG02596   # 31 NPAs

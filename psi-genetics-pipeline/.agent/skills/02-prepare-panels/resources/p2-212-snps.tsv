@@ -1,0 +1,213 @@
+rank	rsid	gene_reported	effect_size	fdr_q	source_table
+1	rs10410488	ARHGEF18	20.8	0.000001	main_text_top20
+2	rs10767843	ARHGAP35	19.2	0.026	main_text_top20
+3	rs10484946	CDH13	18.4	0.026	main_text_top20
+4	rs11015068	SLC1A2	17.2	0.026	main_text_top20
+5	rs8007684	INPP5A	15.9	0.026	main_text_top20
+6	rs6597976	PLCB1	15.5	0.026	main_text_top20
+7	rs4148441	CAMK1G	14.6	0.026	main_text_top20
+8	rs1886956	CLCA1	14.0	0.026	main_text_top20
+9	rs2278844	WWOX	13.9	0.026	main_text_top20
+10	rs10887679	ERC1	13.5	0.026	main_text_top20
+11	rs1039122	DLG2	13.4	0.026	main_text_top20
+12	rs2774920	TNR	13.4	0.026	main_text_top20
+13	rs10466815	FMN1	12.8	0.026	main_text_top20
+14	rs2836062	NOBOX	12.7	0.026	main_text_top20
+15	rs10490099	ESR1	12.0	0.026	main_text_top20
+16	rs11761806	RERE	11.8	0.026	main_text_top20
+17	rs12123002	ROR1	11.6	0.026	main_text_top20
+18	rs3982	TNR	11.5	0.026	main_text_top20
+19	rs12542396	ERC1	11.4	0.026	main_text_top20
+20	rs9942677	WWOX	11.4	0.026	main_text_top20
+21	rs7333428		11.2	0.026	supplement
+22	rs10099281		11.2	0.026	supplement
+23	rs9383633		11.2	0.026	supplement
+24	rs730592		11.0	0.026	supplement
+25	rs7684327		11.0	0.026	supplement
+26	rs2826662		10.9	0.026	supplement
+27	rs2875553		10.9	0.026	supplement
+28	rs7009652		10.8	0.026	supplement
+29	rs11903403		10.7	0.026	supplement
+30	rs901865		10.7	0.026	supplement
+31	rs321913		10.7	0.026	supplement
+32	rs7243161		10.6	0.026	supplement
+33	rs2791494		10.6	0.026	supplement
+34	rs4734058		10.5	0.026	supplement
+35	rs1134715		10.2	0.026	supplement
+36	rs9262152		10.2	0.026	supplement
+37	rs9684467		10.2	0.026	supplement
+38	rs2881766		10.1	0.026	supplement
+39	rs13243056		10.1	0.026	supplement
+40	rs11786905		10.1	0.026	supplement
+41	rs9552886		9.9	0.026	supplement
+42	rs7070384		9.9	0.026	supplement
+43	rs1470590		9.9	0.026	supplement
+44	rs9821038		9.8	0.026	supplement
+45	rs313728		9.8	0.026	supplement
+46	rs3914628		9.8	0.026	supplement
+47	rs11235468		9.7	0.026	supplement
+48	rs1357477		9.7	0.026	supplement
+49	rs6987139		9.6	0.026	supplement
+50	rs9314227		9.6	0.026	supplement
+51	rs7435410		9.5	0.026	supplement
+52	rs12586536		9.5	0.026	supplement
+53	rs4820946		9.5	0.026	supplement
+54	rs2028385		9.5	0.026	supplement
+55	rs809192		9.5	0.026	supplement
+56	rs35596		9.5	0.026	supplement
+57	rs1072594		9.5	0.026	supplement
+58	rs2691815		9.5	0.026	supplement
+59	rs2669429		9.5	0.026	supplement
+60	rs9367538		9.5	0.026	supplement
+61	rs4908501		9.4	0.026	supplement
+62	rs723295		9.4	0.026	supplement
+63	rs12102675		9.4	0.026	supplement
+64	rs41829		9.4	0.026	supplement
+65	rs2297319		9.4	0.026	supplement
+66	rs931413		9.4	0.026	supplement
+67	rs11693555		9.4	0.026	supplement
+68	rs790379		9.4	0.026	supplement
+69	rs6701764		9.4	0.026	supplement
+70	rs3776084		9.4	0.026	supplement
+71	rs671490		9.4	0.026	supplement
+72	rs10950938		9.4	0.026	supplement
+73	rs1375005		9.4	0.026	supplement
+74	rs835337		9.4	0.026	supplement
+75	rs2295179		9.3	0.026	supplement
+76	rs791667		9.3	0.026	supplement
+77	rs698335		9.3	0.026	supplement
+78	rs7168200		9.3	0.026	supplement
+79	rs4572830		9.3	0.026	supplement
+80	rs10455922		9.3	0.026	supplement
+81	rs2297879		9.3	0.026	supplement
+82	rs6713675		9.3	0.026	supplement
+83	rs9295536		9.3	0.026	supplement
+84	rs2053421		9.3	0.026	supplement
+85	rs1778013		9.3	0.026	supplement
+86	rs1484197		9.3	0.026	supplement
+87	rs2311719		9.3	0.026	supplement
+88	rs893811		9.3	0.026	supplement
+89	rs747282		9.3	0.026	supplement
+90	rs17384593		9.3	0.026	supplement
+91	rs6942152		9.3	0.026	supplement
+92	rs2077158		9.3	0.026	supplement
+93	rs7635873		9.3	0.026	supplement
+94	rs1516902		9.3	0.026	supplement
+95	rs1895139		9.3	0.026	supplement
+96	rs2706425		9.3	0.026	supplement
+97	rs350885		9.2	0.026	supplement
+98	rs10262791		9.2	0.026	supplement
+99	rs477651		9.2	0.026	supplement
+100	rs890067		9.2	0.026	supplement
+101	rs953288		9.2	0.026	supplement
+102	rs993835		9.2	0.026	supplement
+103	rs9574484		9.2	0.026	supplement
+104	rs757262		9.2	0.026	supplement
+105	rs4532099		9.2	0.026	supplement
+106	rs4755461		9.2	0.026	supplement
+107	rs985419		9.2	0.026	supplement
+108	rs589943		9.2	0.026	supplement
+109	rs8180255		9.2	0.026	supplement
+110	rs4971278		9.2	0.026	supplement
+111	rs7935428		9.2	0.026	supplement
+112	rs9299674		9.2	0.026	supplement
+113	rs1542427		9.2	0.026	supplement
+114	rs7958635		9.2	0.026	supplement
+115	rs12461110		9.2	0.026	supplement
+116	rs1427635		9.2	0.026	supplement
+117	rs11734827		9.2	0.026	supplement
+118	rs950950		9.2	0.026	supplement
+119	rs9976577		9.2	0.026	supplement
+120	rs1338176		9.2	0.026	supplement
+121	rs6793461		9.2	0.026	supplement
+122	rs9694192		9.1	0.026	supplement
+123	rs6460903		9.1	0.026	supplement
+124	rs17149723		9.1	0.026	supplement
+125	rs6857766		9.1	0.026	supplement
+126	rs1024481		9.1	0.026	supplement
+127	rs7963150		9.1	0.026	supplement
+128	rs2071856		9.1	0.026	supplement
+129	rs17756073		9.1	0.026	supplement
+130	rs2603229		9.1	0.026	supplement
+131	rs6683786		9.1	0.026	supplement
+132	rs6453423		9.1	0.026	supplement
+133	rs13207908		9.1	0.026	supplement
+134	rs1406639		9.1	0.026	supplement
+135	rs12924818		9.1	0.026	supplement
+136	rs3786136		9.1	0.026	supplement
+137	rs736476		9.1	0.026	supplement
+138	rs365873		9.1	0.026	supplement
+139	rs1025500		9.1	0.026	supplement
+140	rs783147		9.1	0.026	supplement
+141	rs16937958		9.1	0.026	supplement
+142	rs3092802		9.1	0.026	supplement
+143	rs659406		9.1	0.026	supplement
+144	rs1133400		9.1	0.026	supplement
+145	rs9936860		9.1	0.026	supplement
+146	rs7662445		9.1	0.026	supplement
+147	rs2072954		9.1	0.026	supplement
+148	rs4918979		9.1	0.026	supplement
+149	rs17305076		9.1	0.026	supplement
+150	rs8068795		9.1	0.026	supplement
+151	rs7114467		9.1	0.026	supplement
+152	rs1904592		9.1	0.026	supplement
+153	rs2041012		9.1	0.026	supplement
+154	rs17584516		9.1	0.026	supplement
+155	rs730489		9.1	0.026	supplement
+156	rs971551		9.0	0.026	supplement
+157	rs2045551		9.0	0.026	supplement
+158	rs3849901		9.0	0.026	supplement
+159	rs2838458		9.0	0.026	supplement
+160	rs2100581		9.0	0.026	supplement
+161	rs7153045		9.0	0.026	supplement
+162	rs7813392		9.0	0.026	supplement
+163	rs1512142		9.0	0.026	supplement
+164	rs10090349		9.0	0.026	supplement
+165	rs12208969		9.0	0.026	supplement
+166	rs8091054		9.0	0.026	supplement
+167	rs11614418		9.0	0.026	supplement
+168	rs9349459		9.0	0.026	supplement
+169	rs4073955		9.0	0.026	supplement
+170	rs10163981		9.0	0.026	supplement
+171	rs4653029		9.0	0.026	supplement
+172	rs6553853		9.0	0.026	supplement
+173	rs771655		9.0	0.026	supplement
+174	rs1257676		9.0	0.026	supplement
+175	rs7302361		9.0	0.026	supplement
+176	rs8056579		9.0	0.026	supplement
+177	rs1459361		9.0	0.026	supplement
+178	rs3859192		8.9	0.026	supplement
+179	rs926386		8.9	0.026	supplement
+180	rs6984124		8.9	0.026	supplement
+181	rs7954247		8.9	0.026	supplement
+182	rs9482645		8.9	0.026	supplement
+183	rs1392378		8.9	0.026	supplement
+184	rs250340		8.9	0.026	supplement
+185	rs12509328		8.9	0.026	supplement
+186	rs7255633		8.9	0.026	supplement
+187	rs1031710		8.9	0.026	supplement
+188	rs12905686		8.9	0.026	supplement
+189	rs173214		8.9	0.026	supplement
+190	rs4780054		8.9	0.026	supplement
+191	rs7239592		8.9	0.026	supplement
+192	rs406189		8.9	0.026	supplement
+193	rs7606251		8.9	0.026	supplement
+194	rs4686969		8.9	0.026	supplement
+195	rs478454		8.9	0.026	supplement
+196	rs6859263		8.9	0.026	supplement
+197	rs1003406		8.9	0.026	supplement
+198	rs311384		8.9	0.026	supplement
+199	rs4383344		8.8	0.026	supplement
+200	rs673792		8.8	0.026	supplement
+201	rs226372		8.8	0.026	supplement
+202	rs12593223		8.8	0.026	supplement
+203	rs11682343		8.8	0.026	supplement
+204	rs941823		8.8	0.026	supplement
+205	rs2314597		8.8	0.026	supplement
+206	rs7523061		8.8	0.026	supplement
+207	rs7316480		8.8	0.026	supplement
+208	rs3789662		8.8	0.026	supplement
+209	rs10832000		8.8	0.026	supplement
+210	rs8136206		8.8	0.026	supplement
+211	rs4756214		8.8	0.026	supplement
+212	rs3115238		8.7	0.026	supplement

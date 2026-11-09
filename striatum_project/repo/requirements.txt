@@ -1,0 +1,4 @@
+# Only for installs without Docker (the Docker image uses the apt packages instead).
+nibabel>=5.0
+numpy>=1.24
+scipy>=1.10

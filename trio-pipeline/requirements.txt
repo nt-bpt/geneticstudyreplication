@@ -1,0 +1,8 @@
+# Python packages for trio-pipeline  (pip install -r requirements.txt)
+numpy>=1.26
+cyvcf2>=0.30        # reads the 1000G VCFs; needs htslib (wheels exist for common platforms)
+scipy>=1.11         # optional: Fisher test in skill 05 (skipped with a warning if missing)
+
+# Not installable with pip - install with conda/apt:
+#   bcftools, tabix, bgzip (htslib), curl
+#   conda install -c bioconda bcftools htslib

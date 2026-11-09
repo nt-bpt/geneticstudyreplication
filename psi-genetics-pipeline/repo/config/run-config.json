@@ -1,0 +1,24 @@
+{
+  "sample_label": "sample",
+  "input": {
+    "path": "input/genome.txt",
+    "path_r2": "",
+    "type": "auto"
+  },
+  "build_override": "",
+  "reference": {
+    "GRCh37": "../reference/GRCh37/hs37d5.fa",
+    "GRCh38": "../reference/GRCh38/GRCh38.fa"
+  },
+  "align_build": "GRCh38",
+  "aligner": "auto",
+  "build_aligner_index": false,
+  "work_dir": "../psi-work",
+  "threads": 4,
+  "min_depth": 10,
+  "min_mapq": 20,
+  "min_baseq": 20,
+  "network": true,
+  "kg_phase3_chr7_vcf": "",
+  "kg_phase3_panel": ""
+}

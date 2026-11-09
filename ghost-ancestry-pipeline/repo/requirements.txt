@@ -1,0 +1,7 @@
+# Python packages. The skill scripts themselves need only the
+# Python standard library; CrossMap is used by skill 12, tskit/numpy by
+# TRACE and SINGER output, google-adk by the agent itself.
+CrossMap
+tskit
+numpy
+google-adk>=2.13

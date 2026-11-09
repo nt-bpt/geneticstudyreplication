@@ -1,0 +1,5 @@
+# Combined Python requirements for both pipelines (only the trio pipeline needs any)
+numpy>=1.26
+cyvcf2>=0.30
+scipy>=1.11         # optional
+# System tools (conda -c bioconda): samtools bcftools htslib bwa ; plus curl
