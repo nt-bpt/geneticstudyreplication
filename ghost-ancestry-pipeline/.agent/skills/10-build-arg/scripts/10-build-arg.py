@@ -360,20 +360,66 @@ def work_singer(step, per):
         step.fail(f"{what}. First failure: {errors[0]}. Fix the cause and run this skill "
                   "again; finished windows are kept.")
 
+    # Merge each chromosome's windows into whole-chromosome ARGs. TRACE needs
+    # whole chromosomes; its multi-file input means posterior samples of one
+    # chromosome, not separate windows. SINGER's own merge_ARG.py does this,
+    # and merging reuses sampling that has already been done.
+    merge_script = pc.patched_merge_script(step, singer_dir)
+    n_samples = cfg.int("SINGER_N_SAMPLES")
+    k = max(1, cfg.int("SINGER_MERGE_SAMPLES"))
+    # take the chosen samples from the second half of the chain, evenly spaced,
+    # so they are past the early iterations and not immediate neighbours
+    lo = n_samples // 2
+    span = max(1, n_samples - 1 - lo)
+    picks = sorted({lo + round(i * span / max(1, k - 1)) for i in range(k)}) if k > 1 else [n_samples - 1]
+    picks = [min(p, n_samples - 1) for p in picks]
+    step.metrics.update({"merge_samples": picks, "windows_merged": len(all_w)})
+
     rows, analysed = [], 0
-    for w in all_w:
-        wdir = pc.work(cfg, "arg", w["chrom"], f"w{w['start']}", "x").parent
-        trees = pick_trees(wdir, cfg.get("SINGER_USE_SAMPLE"))
-        rows.append(dict(w, trees=str(trees)))
-        analysed += w["end"] - w["start"]
+    for chrom in cfg.chromosomes():
+        ws = sorted([w for w in all_w if w["chrom"] == chrom], key=lambda w: w["start"])
+        if not ws:
+            continue
+        mdir = pc.work(cfg, "arg", chrom, "merged", "x").parent
+        mlog = mdir / "merge.log"
+        for s_i in picks:
+            trees = mdir / f"{chrom}_sample{s_i}.trees"
+            if not pc.nonempty(trees):
+                table, missing = [], []
+                for w in ws:
+                    wdir = pc.work(cfg, "arg", chrom, f"w{w['start']}", "x").parent
+                    trio = [wdir / f"singer_{kind}_{s_i}.txt"
+                            for kind in ("nodes", "branches", "muts")]
+                    if not all(f.exists() for f in trio):
+                        missing.append(f"{chrom}:{w['start']} sample {s_i}")
+                        continue
+                    table.append(" ".join(str(f) for f in trio) + f" {w['start']}")
+                if missing:
+                    step.fail(f"{len(missing)} window(s) have no SINGER output for posterior "
+                              f"sample {s_i} (first: {missing[0]}). Lower SINGER_MERGE_SAMPLES, "
+                              "or check that SINGER_N_SAMPLES matches what was actually sampled.")
+                tfile = mdir / f"file_table_{s_i}.txt"
+                tfile.write_text("\n".join(table) + "\n")
+                step.progress(f"{chrom}: merging {len(table)} windows into a whole-chromosome "
+                              f"ARG (posterior sample {s_i})")
+                step.run([sys.executable, str(merge_script), "--file_table", str(tfile),
+                          "--output", str(trees)], log_path=mlog, cwd=str(pc.ROOT))
+                if not pc.nonempty(trees):
+                    step.fail(f"merging did not write {pc.rel(trees)} (log: {pc.rel(mlog)})")
+            rows.append({"chrom": chrom, "start": 0, "end": ws[-1]["end"],
+                         "n_sites": sum(w["n_sites"] for w in ws),
+                         "trees": str(trees), "sample": s_i})
+        analysed += sum(w["end"] - w["start"] for w in ws)
+
     idx = pc.write_tsv(pc.work(cfg, "arg", "trees_index.tsv"), rows,
-                       ["chrom", "start", "end", "n_sites", "trees"])
+                       ["chrom", "start", "end", "n_sites", "trees", "sample"])
     step.metrics["analysed_bp"] = analysed
     step.outputs.append(idx)
     if skipped:
         step.warn(f"{len(skipped)} windows had too few sites and were left out of the ARG "
                   "(gaps such as centromeres are normal)")
-    return "OK", f"ARGs built for {len(rows)} windows ({analysed / 1e6:.1f} Mb)"
+    return "OK", (f"{len(all_w)} SINGER windows merged into {len(rows)} whole-chromosome ARG(s) "
+                  f"across posterior samples {picks} ({analysed / 1e6:.1f} Mb)")
 
 
 if __name__ == "__main__":

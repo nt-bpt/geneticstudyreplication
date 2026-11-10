@@ -17,7 +17,7 @@ note that I am not a lawyer and this is not legal advice.
 | Program | Used by | Terms as read |
 |---|---|---|
 | Relate | skill 10 (default) | Academic, non-commercial use only. University of Oxford. Redistribution is not permitted, and the terms require the notice below wherever results are used. Commercial enquiries: Oxford University Innovation, reference 15670 |
-| SINGER | skill 10 (`ARG_METHOD=singer`) | MIT licence, Copyright (c) 2023 YunDeng98 |
+| SINGER | skill 10 (`ARG_METHOD=singer`) | MIT licence, Copyright (c) 2023 YunDeng98. Skill 10 keeps a corrected copy of SINGER's `merge_ARG.py` under `work/`, adding the `build_index()` and `compute_mutation_parents()` calls that current tskit requires; the MIT licence permits this, and the user's own install is not modified |
 | TRACE | skills 11 and 14 | MIT licence, Copyright (c) 2025 Arjun Biddanda, Yulin Zhang. <https://github.com/YulinZhang9806/trace> |
 | Beagle | skill 7 | GNU GPL v3 (as packaged by third parties). Run as a separate program, so it imposes no licence on this pipeline's own code |
 | samtools, bcftools, htslib | several | MIT/BSD-style |

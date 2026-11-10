@@ -153,6 +153,8 @@ my sandbox, nor with a live model driving the calls. Check these first, on the c
 | Relate parameters | `RELATE_MU`, `RELATE_N` | `RELATE_N` is the HAPLOID Ne (2x diploid); defaults are Relate's own documented example values |
 | Mappability mask | `RELATE_MASK` | Optional but recommended for real data; without it, poorly mappable regions are kept |
 | SINGER options (with `ARG_METHOD=singer`) | `SINGER_CMD_TEMPLATE`, `SINGER_CONVERT_TEMPLATE` | Written from SINGER's documented usage; compare with `singer_master -h` |
+| SINGER folder | `SINGER_DIR` | Must be a versioned release folder; `releases/` itself holds stale loose copies of `singer` and `convert_to_tskit` |
+| Posterior samples merged | `SINGER_MERGE_SAMPLES` | How many whole-chromosome ARGs TRACE averages over; more is better and slower |
 | Haplotype node IDs | skill 08 warning | Assumes the user's haplotypes are the last two sample nodes |
 | Source labelling rule | `LABEL_DELTA` | Simplified version of supplementary S4.2 |
 | Download URLs | `config.env.example` defaults | Beagle's jar name changes per release; others may move |

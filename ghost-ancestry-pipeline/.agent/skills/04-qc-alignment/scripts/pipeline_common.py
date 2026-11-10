@@ -119,7 +119,7 @@ DEFAULTS = {
     "RELATE_DIR": "", "RELATE_MU": "1.25e-8", "RELATE_N": "30000", "RELATE_SEED": "1",
     "RELATE_MASK": "", "RELATE_POPSIZE": "1", "RELATE_POPSIZE_ITER": "5",
     # SINGER (ARG inference, ARG_METHOD=singer)
-    "SINGER_DIR": "",
+    "SINGER_DIR": "", "SINGER_MERGE_SAMPLES": "4", "SINGER_TRACE_WINDOW_BP": "1000",
     "SINGER_NE": "1e4", "SINGER_MU": "1.2e-8", "SINGER_RATIO": "1",
     "SINGER_WINDOW_BP": "1000000", "SINGER_MIN_SITES": "100",
     "SINGER_N_SAMPLES": "100", "SINGER_THIN": "20", "SINGER_JOBS": "4",
@@ -951,11 +951,54 @@ def read_tsv(path):
 # --------------------------------------------------------------------------
 # TRACE runner (used by skills 11 and 14)
 # --------------------------------------------------------------------------
+def patched_merge_script(step, singer_dir):
+    """A working copy of SINGER's merge_ARG.py.
+
+    The shipped script builds a tree sequence in read_long_ARG() without
+    indexing the tables or computing mutation parents, so current tskit rejects
+    it ("A mutation's parent is not consistent with the topology of the tree").
+    SINGER is MIT licensed, so the pipeline keeps a corrected copy under work/
+    rather than touching the user's install.
+    """
+    src = Path(singer_dir) / "merge_ARG.py"
+    if not src.exists():
+        step.fail(f"{src} not found. Merging per-window SINGER output needs merge_ARG.py, which "
+                  "ships inside each versioned SINGER release folder. Point SINGER_DIR at one, "
+                  "for example tools/SINGER/releases/singer-0.1.9-beta-linux-x86_64.")
+    text = src.read_text(errors="replace")
+    dest = work(step.cfg, "arg", "merge_ARG_patched.py")
+    needle = "    tables.sort()\n    ts = tables.tree_sequence()"
+    if needle in text:
+        fixed = text.replace(needle, "    tables.sort()\n    tables.build_index()\n"
+                                     "    tables.compute_mutation_parents()\n"
+                                     "    ts = tables.tree_sequence()", 1)
+        step.log(f"using a corrected copy of {src} (added build_index and "
+                 f"compute_mutation_parents): {rel(dest)}")
+    elif text.count("compute_mutation_parents") >= 2:
+        fixed = text          # a release that already does this
+        step.log(f"{src} already computes mutation parents; using it unchanged")
+    else:
+        step.fail(f"cannot tell whether {src} computes mutation parents, so merging may produce "
+                  "a tree sequence tskit rejects. Report this with the SINGER version.")
+    dest.write_text(fixed)
+    return dest
+
+
 def read_windows(cfg):
     idx = work(cfg, "arg", "trees_index.tsv")
     if not idx.exists():
         raise StepError("work/arg/trees_index.tsv is missing. Run 10-build-arg first.")
     return [dict(r, start=int(r["start"]), end=int(r["end"])) for r in read_tsv(idx)]
+
+
+def trees_by_chrom(cfg):
+    """{chrom: [rows]}; several rows mean posterior samples of a whole chromosome."""
+    out = {}
+    for w in read_windows(cfg):
+        out.setdefault(w["chrom"], []).append(w)
+    for rows in out.values():
+        rows.sort(key=lambda r: str(r.get("sample", "")))
+    return out
 
 
 # --------------------------------------------------------------------------
@@ -1041,36 +1084,49 @@ def run_trace(step, t, tag, min_bp, min_cm):
     with open(log, "a") as f:
         f.write(f"{ATTEMPT_MARK}{time.strftime('%Y-%m-%d %H:%M:%S')} =====\n")
 
-    # group the ARG index by chromosome; TRACE needs whole-chromosome tree sequences
-    by_chrom = {}
-    for w in read_windows(cfg):
-        by_chrom.setdefault(w["chrom"], []).append(w)
-    multi = {c: len(v) for c, v in by_chrom.items() if len(v) > 1}
-    if multi:
-        step.fail("TRACE needs one tree sequence per chromosome, but 10-build-arg produced "
-                  f"several per chromosome ({multi}). That happens with ARG_METHOD=singer, "
-                  "whose per-window outputs TRACE cannot combine (its multi-file input means "
-                  "posterior samples of a whole chromosome, not separate windows). Ask the "
-                  "user to set ARG_METHOD=relate in repo/config.env and rerun 10-build-arg.")
+    by_chrom = trees_by_chrom(cfg)
+    if not by_chrom:
+        step.fail("work/arg/trees_index.tsv lists no tree sequences; rerun 10-build-arg")
+    for chrom, rows in by_chrom.items():
+        for r in rows:
+            if not Path(r["trees"]).exists():
+                step.fail(f"{r['trees']} is missing; rerun 10-build-arg")
+    # Several rows for one chromosome mean posterior samples of the whole
+    # chromosome (SINGER). TRACE summarises across them, and then needs
+    # --window-size; one row per chromosome (Relate) uses the marginal trees.
+    n_per = {c: len(v) for c, v in by_chrom.items()}
+    posterior = max(n_per.values()) > 1
+    step.metrics["tree_sequences_per_chromosome"] = n_per
 
-    # 1. extract observations, once per chromosome
+    # 1. extract observations: one npz per tree sequence
     npz, chroms, maps = {}, [], {}
-    for chrom, ws in sorted(by_chrom.items()):
-        trees = ws[0]["trees"]
-        out = base / chrom / "extract"
-        out.parent.mkdir(parents=True, exist_ok=True)
-        target = Path(str(out) + ".npz")
-        if not nonempty(target):
-            cmd = [extract, "-f", trees, "-t", t, "-i", ",".join(str(n) for n in nodes),
-                   "--chrom", chrom, "-o", str(out)]
-            inc = trace_include_regions(step, chrom)
-            if inc:
-                cmd += ["--include-regions", str(inc)]
-            step.progress(f"TRACE t={t}: extracting observations for {chrom}")
-            step.run(cmd, log_path=log, cwd=str(ROOT))
+    for chrom, rows in sorted(by_chrom.items()):
+        files = []
+        for k, r in enumerate(rows):
+            tag_k = f"extract_{r.get('sample', k)}"
+            out = base / chrom / tag_k
+            out.parent.mkdir(parents=True, exist_ok=True)
+            target = Path(str(out) + ".npz")
             if not nonempty(target):
-                step.fail(f"trace-extract did not write {rel(target)} (log: {rel(log)})")
-        npz[chrom] = target
+                cmd = [extract, "-f", r["trees"], "-t", t,
+                       "-i", ",".join(str(n) for n in nodes), "--chrom", chrom, "-o", str(out)]
+                if posterior:
+                    cmd += ["--window-size", cfg.get("SINGER_TRACE_WINDOW_BP")]
+                inc = trace_include_regions(step, chrom)
+                if inc:
+                    cmd += ["--include-regions", str(inc)]
+                step.progress(f"TRACE t={t}: extracting {chrom} "
+                              f"({k + 1}/{len(rows)} tree sequence(s))")
+                step.run(cmd, log_path=log, cwd=str(ROOT))
+                if not nonempty(target):
+                    step.fail(f"trace-extract did not write {rel(target)} (log: {rel(log)})")
+            files.append(target)
+        if posterior:   # a data file listing this chromosome's posterior samples
+            dfile = base / chrom / "data_files.txt"
+            dfile.write_text("\n".join(str(f) for f in files) + "\n")
+            npz[chrom] = dfile
+        else:
+            npz[chrom] = files[0]
         chroms.append(chrom)
         maps[chrom] = write_hapmap_map(cfg, chrom, base / chrom / "genetic_map.txt")
 
@@ -1083,7 +1139,8 @@ def run_trace(step, t, tag, min_bp, min_cm):
             step.progress(f"TRACE t={t}: inferring haplotype {hap_index + 1} of 2 "
                           f"({len(chroms)} chromosome(s))")
             step.run([infer, "-i", node,
-                      "--npz-files", ",".join(str(npz[c]) for c in chroms),
+                      "--data-files" if posterior else "--npz-files",
+                      ",".join(str(npz[c]) for c in chroms),
                       "--chroms", ",".join(chroms),
                       "--genetic-maps", ",".join(str(maps[c]) for c in chroms),
                       "--seed", cfg.get("TRACE_SEED"), "-o", str(prefix)],
