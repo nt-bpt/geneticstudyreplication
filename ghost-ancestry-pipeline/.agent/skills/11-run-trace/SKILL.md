@@ -5,7 +5,7 @@ description: run TRACE at t=15,000 generations to find archaic segments in the u
 
 #  11-run-trace Skill
 
-SKILL 11 — Run TRACE (t = 15,000 generations) on the user's two haplotypes and keep archaic segments longer than 50 kb and 0.05 cM.
+SKILL 11 — Run TRACE's three stages (extract, infer, summarize) on the user's two haplotypes at t = 15,000 generations, keeping archaic segments longer than 50 kb and 0.05 cM.
 
 Expected workflow:
 
@@ -18,18 +18,23 @@ General expectations:
 
 The script finds the repo folder (next to .agent/skills in your working directory) by itself; all paths below are relative to repo/.
 
-Several hours, depending on TRACE speed and the number of windows. The tool call itself returns within seconds.
+Extraction takes minutes to an hour per chromosome; inference and summarising are quicker. The tool call itself returns within seconds.
+
+A WARN about few chromosomes is expected on a chr22 pilot: TRACE trains its model on the chromosomes it is given, so a pilot checks the pipeline rather than measuring ancestry.
+
+Finding no segments is possible on a small pilot and is not an error.
 
 Outputs:
 
-results/11-run-trace.json
+results/11-run-trace.json (`metrics.segments_kept`, `metrics.archaic_fraction_per_genome`)
 work/trace/t15000/segments.filtered.tsv
+work/trace/t15000/trace.log
 
 If it fails:
 
-- TRACE_CMD_TEMPLATE is empty: ask the user to set TRACE_CMD_TEMPLATE in repo/config.env (see 09-fetch-trace).
-- cannot find start/end columns: TRACE output has an unexpected layout. Show the user the first lines of one file in work/trace/t15000/, and ask them to set TRACE_OUTPUT_COLUMNS (and TRACE_STATE_COLUMN if needed) in repo/config.env.
-- TRACE did not write the output file: the template must write to `{out}`; tell the user.
+- TRACE command not found: give the user the pip command from the verdict (see 09-fetch-trace).
+- TRACE needs one tree sequence per chromosome: the verdict explains this; ask the user to set ARG_METHOD=relate in repo/config.env and rerun 10-build-arg.
+- a TRACE command failed: the verdict ends with the last lines of work/trace/t15000/trace.log; report them to the user.
 - cannot find the repo folder: ask the user to start the agent from the working directory that contains .agent/skills/ and repo/.
 
 Next skill: 12-fetch-archaic

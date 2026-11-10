@@ -75,6 +75,14 @@ def work(step):
           "- A segment inside a gene says nothing about whether it changes how that gene works. "
           "This is research output, not a medical result.", ""]
 
+    if arg == "relate":
+        # Relate's licence requires this notice wherever its results are used
+        L += ["## Software notice", "",
+              "Genealogies were built with Relate (Speidel et al. 2019). Relate's licence "
+              "requires the following notice wherever results from it are used:", "",
+              "> Copyright (c) 2018, University of Oxford", "",
+              "Relate is licensed for academic, non-commercial use. See repo/THIRD-PARTY.md.", ""]
+
     L += ["## Skill status", "", "| Skill | Status | Verdict |", "|---|---|---|"]
     warns = []
     for s in SKILLS:

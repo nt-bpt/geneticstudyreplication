@@ -32,7 +32,7 @@ SKILL.md.
 | 06 | 06-call-variants | genotypes at panel sites | 15-60 min per chromosome |
 | 07 | 07-phase | splits genotypes into two haplotypes | 10-60 min per chromosome |
 | 08 | 08-build-cohort | joins the user to the cohort | minutes |
-| 09 | 09-fetch-trace | downloads TRACE from Zenodo | minutes |
+| 09 | 09-fetch-trace | checks TRACE is installed, downloads published tracts | minutes |
 | 10 | 10-build-arg | builds the genealogies (ARGs) with Relate | hours per large chromosome |
 | 11 | 11-run-trace | finds archaic segments | hours |
 | 12 | 12-fetch-archaic | Neanderthal/Denisovan allele tables | 30-90 min per chromosome |
@@ -73,10 +73,8 @@ Stop and ask the user, with the exact `verdict` text, when:
 - a fix says "ask the user", or needs a change in repo/config.env. Never try to
   edit, create or move repo/config.env yourself;
 - the same skill fails twice in a row with the same verdict;
-- 09-fetch-trace reports that TRACE_CMD_TEMPLATE is empty. Tell the user to
-  install TRACE and set the template. The start of the TRACE README is in
-  `trace_readme_preview` in the tool result; you may use it to suggest a
-  template, but the user decides and sets it;
+- 09-fetch-trace reports that TRACE is not installed. Give the user the pip
+  command from the verdict; do not run it yourself;
 - 10-build-arg is about to start on more than one chromosome and no pilot run
   on chromosome 22 has been finished yet. Ask before committing days of compute;
 - a fix needs a program installed. Give the user the install command from the

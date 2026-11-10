@@ -1,0 +1,51 @@
+# Never publish: this file keeps genetic data and third-party programs out of git.
+# Read repo/THIRD-PARTY.md before publishing this pipeline anywhere.
+
+# ---- Your genetic data (the whole point of this file) --------------------
+# work/ holds your genotypes, haplotypes and archaic segments; results/ and
+# logs/ quote your data and absolute paths. A published genome cannot be
+# withdrawn, and it also discloses information about your blood relatives.
+repo/work/
+repo/results/
+repo/logs/
+repo/config.env
+repo/.skill_runtime/
+
+# Raw and aligned reads, variant calls, in case they are kept here
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.bam
+*.bai
+*.cram
+*.crai
+*.vcf
+*.vcf.gz
+*.vcf.gz.tbi
+*.haps
+*.haps.gz
+*.sample.gz
+*.anc
+*.mut
+*.trees
+
+# ---- Third-party programs (redistributing them may breach their licence) -
+# Relate in particular is licensed for academic non-commercial use and its
+# terms forbid redistribution; never commit it.
+repo/tools/
+repo/.venv/
+.venv/
+
+# ---- Downloaded reference data (large; fetched by the skills) ------------
+repo/data/
+
+# ---- Copyrighted papers -------------------------------------------------
+# The Science paper and its supplementary materials are copyrighted; do not
+# commit them. Cite the DOI instead.
+*.pdf
+
+# ---- Ordinary noise -----------------------------------------------------
+__pycache__/
+*.pyc
+.DS_Store

@@ -5,7 +5,7 @@ description: screen the user's Denisovan segments for super-archaic pieces
 
 #  14-super-archaic Skill
 
-SKILL 14 — Run TRACE again with t = 31,500 generations inside the user's Denisovan segments to find candidate super-archaic pieces.
+SKILL 14 — Run TRACE again at t = 31,500 generations and intersect the result with the user's Denisovan segments to find candidate super-archaic pieces.
 
 Expected workflow:
 

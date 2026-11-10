@@ -290,6 +290,30 @@ def work_singer(step, per):
             step.fail(f"SINGER_CMD_TEMPLATE starts with {prog}, which does not exist (looked for "
                       f"{p}). Relative paths are relative to repo/; using {{singer_dir}} in the "
                       "template avoids this.")
+    # SINGER's repository keeps stale loose copies of `singer` and
+    # `convert_to_tskit` at the top of releases/, next to the proper versioned
+    # release folders. The stale converter builds the tree sequence without
+    # sorting mutations or computing mutation parents, so tskit rejects it with
+    # TSK_ERR_MUTATION_PARENT_AFTER_CHILD ("Parent mutation ID must be <
+    # current ID"). Catch that here rather than after sampling every window.
+    conv = singer_dir / "convert_to_tskit" if singer_dir else None
+    if conv and conv.exists():
+        try:
+            src = conv.read_text(errors="replace")
+        except OSError:
+            src = ""
+        if src and "compute_mutation_parents" not in src:
+            step.fail(
+                f"{conv} is an outdated copy of convert_to_tskit: it does not call "
+                "compute_mutation_parents(), so tskit rejects its output with "
+                "'Parent mutation ID must be < current ID' "
+                "(TSK_ERR_MUTATION_PARENT_AFTER_CHILD). Do not patch it. SINGER ships a "
+                "working converter inside each versioned release folder, while "
+                "releases/ itself holds stale loose copies. Ask the user to point "
+                "SINGER_DIR at a versioned release folder instead, for example "
+                "SINGER_DIR=tools/SINGER/releases/singer-0.1.9-beta-linux-x86_64, then run "
+                "this skill again; windows already sampled are kept and only the "
+                "conversion is repeated.")
     missing = pc.missing_modules("tskit")
     if missing:
         step.fail(f"Python package {', '.join(missing)} is not installed for the Python that runs "

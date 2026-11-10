@@ -75,6 +75,12 @@ def find_root():
 _FOUND_ROOT, ROOT_SOURCE = find_root()
 _BASE = Path(os.environ.get("PWD") or os.getcwd())
 ROOT = _FOUND_ROOT or (_BASE / REPO_DIR)
+
+# Every skill folder carries its own copy of this file. If only some folders are
+# replaced during an update, skills disagree about what the library provides and
+# the symptom appears far from the cause, so each result records this version and
+# require() refuses to build on results from a different one.
+PIPELINE_VERSION = "2026-11-09"
 RESULTS = ROOT / "results"
 LOGS = ROOT / "logs"
 DONE_STATUSES = ("OK", "WARN", "SKIPPED")
@@ -126,9 +132,7 @@ DEFAULTS = {
     # TRACE
     "TRACE_SOFTWARE_RECORD": "21541833", "TRACE_PIPELINE_RECORD": "20213447",
     "TRACE_DATA_RECORD": "19685110",
-    "TRACE_CMD_TEMPLATE": "",
-    "TRACE_OUTPUT_COLUMNS": "", "TRACE_STATE_COLUMN": "", "TRACE_ARCHAIC_VALUE": "archaic",
-    "TRACE_HAP_IDS": "nodes", "TRACE_POS_OFFSET": "auto",
+    "TRACE_POSTERIOR": "0.9", "TRACE_SEED": "42", "TRACE_INCLUDE_REGIONS": "",
     "TRACE_T_GHOST": "15000", "TRACE_T_SUPER": "31500",
     "MIN_SEG_KB": "50", "MIN_SEG_CM": "0.05",
     "SUPER_MIN_SEG_KB": "10", "SUPER_MIN_SEG_CM": "0.01",
@@ -406,6 +410,7 @@ class Step:
             "metrics": self.metrics, "warnings": self.warnings,
             "outputs": [rel(o) for o in self.outputs],
             "log": rel(self.log_path),
+            "pipeline_version": PIPELINE_VERSION,
             "elapsed_seconds": round(time.time() - self.t0, 1),
             "finished": time.strftime("%Y-%m-%d %H:%M:%S"),
         }
@@ -656,14 +661,29 @@ def run_step(name, work, background=False):
 # Results of earlier skills
 # --------------------------------------------------------------------------
 def require(step, *names):
-    out = {}
+    out, older = {}, []
     for n in names:
         r = prev_result(n)
         if not r:
             step.fail(f"skill {n} has not been run yet. Run {n} first.")
         if r.get("status") not in DONE_STATUSES:
             step.fail(f"skill {n} has status {r.get('status')}. Finish {n} before this skill.")
+        v = r.get("pipeline_version")
+        if v and v != PIPELINE_VERSION:
+            step.fail(
+                f"skill {n} ran under pipeline version {v}, but this skill is version "
+                f"{PIPELINE_VERSION}. The skill folders are from different releases, which "
+                "happens when only some of them are replaced during an update. Ask the user to "
+                "replace the whole .agent/skills folder with one release, delete the "
+                f"results/*.json files for skills from {v}, and start again from the first "
+                "skill that needs rerunning.")
+        if not v:
+            older.append(n)
         out[n] = r
+    if older:
+        step.warn(f"results for {', '.join(older)} were produced before this pipeline recorded "
+                  "its version, so they may come from an older release. If anything downstream "
+                  "looks wrong, rerun those skills.")
     return out
 
 
@@ -881,8 +901,7 @@ def parse_segment_file(path, default_chrom=None, columns=None, state_col="", arc
         if len(first) > 3:
             idx["hap"] = 3
     if "start" not in idx or "end" not in idx:
-        raise StepError(f"cannot find start/end columns in {path}. First line: {lines[0][:200]!r}. "
-                        "Set TRACE_OUTPUT_COLUMNS in repo/config.env, e.g. chrom,start,end,hap")
+        raise StepError(f"cannot find start/end columns in {path}. First line: {lines[0][:200]!r}")
     for line in body:
         p = [c.strip() for c in split(line)]
         try:
@@ -939,69 +958,173 @@ def read_windows(cfg):
     return [dict(r, start=int(r["start"]), end=int(r["end"])) for r in read_tsv(idx)]
 
 
-def run_trace_windows(step, t, tag, windows):
+# --------------------------------------------------------------------------
+# TRACE (https://github.com/YulinZhang9806/trace): a three-command CLI.
+#   trace-extract   per tree sequence  -> .npz of observations
+#   trace-infer     per haplotype      -> .[chrom].xss.npz posteriors
+#   trace-summarize per haplotype      -> .summary.txt of archaic segments
+# --------------------------------------------------------------------------
+def trace_exe(step, name):
+    """Full path to a trace-* command, preferring this Python's own bin folder."""
+    cand = Path(sys.executable).parent / name
+    if cand.exists():
+        return str(cand)
+    found = shutil.which(name)
+    if found:
+        return found
+    step.fail(f"{name} not found. TRACE is a Python package providing trace-extract, "
+              "trace-infer and trace-summarize. Ask the user to install it into the same "
+              f"environment as this pipeline: {sys.executable} -m pip install "
+              "'git+https://github.com/YulinZhang9806/trace.git'")
+
+
+def write_hapmap_map(cfg, chrom, dest):
+    """PLINK map (chrom id cM bp) -> HapMap-style map for trace-infer, which reads
+    column 2 as position (bp) and column 4 as genetic distance (cM)."""
+    rows = []
+    for line in open_text(map_file(cfg, chrom)):
+        p = line.split()
+        if len(p) >= 4:
+            rows.append((int(p[3]), float(p[2])))
+    rows.sort()
+    with open(dest, "w") as f:
+        f.write("Chromosome Position(bp) Rate(cM/Mb) Map(cM)\n")
+        for k, (bp, cm) in enumerate(rows):
+            nxt = k + 1 < len(rows) and rows[k + 1][0] > bp
+            rate = (rows[k + 1][1] - cm) / (rows[k + 1][0] - bp) * 1e6 if nxt else 0.0
+            f.write(f"{chrom} {bp} {max(rate, 0.0):.8f} {cm:.8f}\n")
+    return dest
+
+
+def data_spans():
+    """Per chromosome, the first and last variant position in the cohort VCF."""
+    per = metric("08-build-cohort", "per_chromosome") or {}
+    return {c: (int(v["first_pos"]), int(v["last_pos"])) for c, v in per.items()
+            if v.get("first_pos") is not None}
+
+
+def trace_include_regions(step, chrom):
+    """Optional accessibility BED for trace-extract, e.g. the 1000 Genomes
+    strict mask, which is what the paper used. TRACE needs bedtools for this.
+    When unset, no mask is passed and segments are instead clipped afterwards
+    to the region that holds variants (see run_trace)."""
+    v = step.cfg.get("TRACE_INCLUDE_REGIONS")
+    if not v:
+        return None
+    if not have("bedtools"):
+        step.fail("TRACE_INCLUDE_REGIONS is set, but TRACE needs bedtools to apply it. Ask the "
+                  "user to install bedtools (Debian/Ubuntu: sudo apt install bedtools; macOS: "
+                  "brew install bedtools), or to clear TRACE_INCLUDE_REGIONS in repo/config.env.")
+    v = v.replace("{chrom}", chrom).replace("{n}", chrom_number(chrom))
+    p = Path(os.path.expandvars(v)).expanduser()
+    p = p if p.is_absolute() else ROOT / strip_repo_prefix(str(p))
+    if not p.exists():
+        step.fail(f"TRACE_INCLUDE_REGIONS file {p} not found")
+    return p
+
+
+def run_trace(step, t, tag, min_bp, min_cm):
+    """Drive the three TRACE commands for the user's two haplotypes.
+
+    Returns (segments, per_chromosome_info). Each segment has chrom, start, end,
+    hap (0 or 1), length_bp, length_cM and mean_posterior.
+    """
     cfg = step.cfg
-    tmpl = cfg.template("TRACE_CMD_TEMPLATE")
-    if not tmpl:
-        step.fail("TRACE_CMD_TEMPLATE is empty. Ask the user to set it in repo/config.env after "
-                  "reading the TRACE README listed in results/09-fetch-trace.json.")
     nodes = metric("08-build-cohort", "user_hap_nodes") or []
-    hap_file = work(cfg, "cohort", "user_hap_nodes.txt")
-    trace_dir = metric("09-fetch-trace", "trace_software_dir", "")
-    out_files = []
-    for i, w in enumerate(windows, 1):
-        out = work(cfg, "trace", tag, w["chrom"], f"w{w['start']}.out")
-        if nonempty(out):
-            out_files.append((w, out))
-            continue
-        cmd = tmpl.format(trees=w["trees"], chrom=w["chrom"], start=w["start"], end=w["end"],
-                          haps=",".join(str(n) for n in nodes), hap_file=hap_file, t=t,
-                          out=out, threads=cfg.get("THREADS"), trace_dir=trace_dir,
-                          map=map_file(cfg, w["chrom"]))
-        part_log = work(cfg, "trace", tag, w["chrom"], f"w{w['start']}.log")
-        step.run(cmd, log_path=part_log)
-        if not out.exists():
-            step.fail(f"TRACE finished but did not write {rel(out)}. Check that "
-                      "TRACE_CMD_TEMPLATE writes its result to {out}.")
-        out_files.append((w, out))
-        step.progress(f"TRACE t={t}: {i}/{len(windows)} windows done")
-    return out_files
+    if len(nodes) != 2:
+        step.fail("the user's haplotype node IDs are missing from 08-build-cohort results; "
+                  "rerun 08-build-cohort")
+    extract, infer, summarize = (trace_exe(step, n) for n in
+                                 ("trace-extract", "trace-infer", "trace-summarize"))
+    base = work(cfg, "trace", tag, "x").parent
+    log = base / "trace.log"
+    with open(log, "a") as f:
+        f.write(f"{ATTEMPT_MARK}{time.strftime('%Y-%m-%d %H:%M:%S')} =====\n")
 
+    # group the ARG index by chromosome; TRACE needs whole-chromosome tree sequences
+    by_chrom = {}
+    for w in read_windows(cfg):
+        by_chrom.setdefault(w["chrom"], []).append(w)
+    multi = {c: len(v) for c, v in by_chrom.items() if len(v) > 1}
+    if multi:
+        step.fail("TRACE needs one tree sequence per chromosome, but 10-build-arg produced "
+                  f"several per chromosome ({multi}). That happens with ARG_METHOD=singer, "
+                  "whose per-window outputs TRACE cannot combine (its multi-file input means "
+                  "posterior samples of a whole chromosome, not separate windows). Ask the "
+                  "user to set ARG_METHOD=relate in repo/config.env and rerun 10-build-arg.")
 
-def collect_trace_segments(step, out_files):
-    cfg = step.cfg
-    cols = cfg.list("TRACE_OUTPUT_COLUMNS") or None
-    nodes = [str(n) for n in (metric("08-build-cohort", "user_hap_nodes") or [])]
-    mode = cfg.get("TRACE_HAP_IDS").lower()
-    offset_mode = cfg.get("TRACE_POS_OFFSET").lower()
-    segs, dropped, offset_used = [], 0, 0
-    for w, path in out_files:
-        rows = parse_segment_file(path, default_chrom=w["chrom"], columns=cols,
-                                  state_col=cfg.get("TRACE_STATE_COLUMN"),
-                                  archaic_value=cfg.get("TRACE_ARCHAIC_VALUE"))
-        width = w["end"] - w["start"]
-        add = 0
-        if offset_mode == "add" or (offset_mode == "auto" and rows and w["start"] > 0
-                                    and max(r["end"] for r in rows) <= width * 1.01):
-            add = w["start"]
-            offset_used += 1
-        for r in rows:
-            r["start"] += add
-            r["end"] += add
-            h = str(r["hap"])
-            if mode == "nodes" and nodes and h != "NA":
-                if h not in nodes:
-                    dropped += 1
-                    continue
-                r["hap"] = nodes.index(h)
-            elif mode == "index" and h in ("0", "1"):
-                r["hap"] = int(h)
-            segs.append(r)
-    if offset_used:
-        step.log(f"added window start offsets to {offset_used} window outputs (TRACE_POS_OFFSET)")
-    if dropped:
-        step.log(f"ignored {dropped} rows belonging to haplotypes other than the user's")
-    return merge_segments(segs)
+    # 1. extract observations, once per chromosome
+    npz, chroms, maps = {}, [], {}
+    for chrom, ws in sorted(by_chrom.items()):
+        trees = ws[0]["trees"]
+        out = base / chrom / "extract"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        target = Path(str(out) + ".npz")
+        if not nonempty(target):
+            cmd = [extract, "-f", trees, "-t", t, "-i", ",".join(str(n) for n in nodes),
+                   "--chrom", chrom, "-o", str(out)]
+            inc = trace_include_regions(step, chrom)
+            if inc:
+                cmd += ["--include-regions", str(inc)]
+            step.progress(f"TRACE t={t}: extracting observations for {chrom}")
+            step.run(cmd, log_path=log, cwd=str(ROOT))
+            if not nonempty(target):
+                step.fail(f"trace-extract did not write {rel(target)} (log: {rel(log)})")
+        npz[chrom] = target
+        chroms.append(chrom)
+        maps[chrom] = write_hapmap_map(cfg, chrom, base / chrom / "genetic_map.txt")
+
+    # 2. infer posteriors, once per haplotype across all chromosomes together
+    segs, per_chrom = [], {}
+    for hap_index, node in enumerate(nodes):
+        prefix = base / f"hap{hap_index}"
+        xss = [Path(f"{prefix}.{c}.xss.npz") for c in chroms]
+        if not all(nonempty(x) for x in xss):
+            step.progress(f"TRACE t={t}: inferring haplotype {hap_index + 1} of 2 "
+                          f"({len(chroms)} chromosome(s))")
+            step.run([infer, "-i", node,
+                      "--npz-files", ",".join(str(npz[c]) for c in chroms),
+                      "--chroms", ",".join(chroms),
+                      "--genetic-maps", ",".join(str(maps[c]) for c in chroms),
+                      "--seed", cfg.get("TRACE_SEED"), "-o", str(prefix)],
+                     log_path=log, cwd=str(ROOT))
+            missing = [rel(x) for x in xss if not nonempty(x)]
+            if missing:
+                step.fail(f"trace-infer did not write {missing} (log: {rel(log)})")
+
+        # 3. summarise into segments
+        sm = base / f"hap{hap_index}_segments"
+        summary = Path(str(sm) + ".summary.txt")
+        if not nonempty(summary):
+            step.run([summarize, "-f", ",".join(str(x) for x in xss),
+                      "-c", ",".join(chroms),
+                      "--posterior-threshold", cfg.get("TRACE_POSTERIOR"),
+                      "--physical-length-threshold", int(min_bp),
+                      "--genetic-distance-threshold", min_cm,
+                      "-o", str(sm)], log_path=log, cwd=str(ROOT))
+            if not summary.exists():
+                step.fail(f"trace-summarize did not write {rel(summary)} (log: {rel(log)})")
+        spans, clipped = data_spans(), 0
+        for r in read_tsv(summary):
+            chrom = r.get("chromosome") or r.get("chrom")
+            start, end = int(float(r["start"])), int(float(r["end"]))
+            lo, hi = spans.get(chrom, (start, end))
+            a, b = max(start, lo), min(end, hi)   # keep only the part holding data
+            if b <= a:
+                clipped += 1
+                continue
+            if (a, b) != (start, end):
+                clipped += 1
+            segs.append({"chrom": chrom, "start": a, "end": b, "hap": hap_index,
+                         "length_bp": b - a, "length_cM": float(r.get("length(cM)") or 0.0),
+                         "mean_posterior": float(r.get("mean_posterior") or 0.0)})
+            per_chrom[chrom] = per_chrom.get(chrom, 0) + 1
+        if clipped:
+            step.log(f"haplotype {hap_index}: {clipped} segment(s) reached outside the region "
+                     "holding variants and were clipped or dropped")
+    # recompute genetic lengths for the clipped spans and re-apply the filters
+    segs = filter_segments(cfg, segs, min_bp - 1, min_cm - 1e-9)
+    return segs, per_chrom
 
 
 def filter_segments(cfg, segs, min_bp, min_cm):

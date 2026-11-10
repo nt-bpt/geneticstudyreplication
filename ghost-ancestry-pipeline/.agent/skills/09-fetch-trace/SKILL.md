@@ -1,11 +1,11 @@
 ---
 name: 09-fetch-trace
-description: download TRACE software, the authors' pipeline and published tracts from Zenodo
+description: check that TRACE is installed and download the published archaic tracts
 ---
 
 #  09-fetch-trace Skill
 
-SKILL 09 — Download the TRACE software, the authors' analysis pipeline and the published archaic tracts from Zenodo.
+SKILL 09 — Check that TRACE's three commands are installed in this environment, and download the archaic tracts published with the paper (used for comparison in skill 15).
 
 Expected workflow:
 
@@ -18,19 +18,19 @@ General expectations:
 
 The script finds the repo folder (next to .agent/skills in your working directory) by itself; all paths below are relative to repo/.
 
-A few minutes to an hour, depending on download size. The tool call itself returns within seconds.
+A few minutes, mostly download time. The tool call itself returns within seconds.
 
-If TRACE_CMD_TEMPLATE is empty this skill gives a WARN. Tell the user they must install TRACE and set TRACE_CMD_TEMPLATE in repo/config.env before skill 11. The start of the TRACE README is in `trace_readme_preview` in the tool result; you may use it to suggest a template, but the user sets it.
+You do not need to configure any TRACE command: skills 11 and 14 call trace-extract, trace-infer and trace-summarize themselves.
 
 Outputs:
 
-results/09-fetch-trace.json (`trace_readme_preview` holds the start of the TRACE README)
-tools/trace_software/, tools/trace_pipeline/, data/trace_data/
+results/09-fetch-trace.json (`metrics.trace_commands`, `metrics.trace_data_dir`)
+data/trace_data/ (the published tracts)
 
 If it fails:
 
-- Zenodo listing failed: ask the user to download the three Zenodo records by hand into tools/trace_software, tools/trace_pipeline and data/trace_data, then run again.
-- not enough disk space for Trace_data: ask the user to free space.
+- TRACE not installed: give the user the pip command from the verdict. TRACE is a Python package (MIT licence) that provides trace-extract, trace-infer and trace-summarize; it must go into the same environment that runs this pipeline.
+- Zenodo download failed: this is only a WARN. The run continues without the comparison against published tracts; mention it in the report.
 - cannot find the repo folder: ask the user to start the agent from the working directory that contains .agent/skills/ and repo/.
 
 Next skill: 10-build-arg

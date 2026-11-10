@@ -17,6 +17,7 @@ def work(step):
         step.fail("repo/config.env not found. Ask the user to create it "
                   "(copy repo/config.env.example to repo/config.env).")
     step.metrics["config"] = str(cfg.file)
+    step.metrics["pipeline_version"] = pc.PIPELINE_VERSION
 
     # input mode ----------------------------------------------------------
     r1, r2, inp = cfg.path("FASTQ_R1"), cfg.path("FASTQ_R2"), cfg.path("INPUT_FILE")
@@ -132,10 +133,11 @@ def work(step):
                             "files must be under repo/. Use a relative path such as "
                             f"{key.split('_')[0].lower()}")
     step.metrics["repo"] = str(pc.ROOT)
-    for k in ("SINGER_CMD_TEMPLATE", "SINGER_CONVERT_TEMPLATE", "TRACE_CMD_TEMPLATE"):
+    for k in ("SINGER_CMD_TEMPLATE", "SINGER_CONVERT_TEMPLATE"):
         cfg.template(k)
     for k in ("FASTQ_R1", "FASTQ_R2", "INPUT_FILE", "INPUT_REFERENCE", "REFERENCE_FASTA",
-              "SINGER_DIR", "RELATE_DIR", "RELATE_MASK", "BEAGLE_JAR"):
+              "SINGER_DIR", "RELATE_DIR", "RELATE_MASK", "BEAGLE_JAR",
+              "TRACE_INCLUDE_REGIONS"):
         cfg.path(k)
     for k, v in sorted(cfg.repo_prefixed.items()):
         step.warn(f"{k} in repo/config.env starts with repo/ ({v!r}). Paths in config.env are "
@@ -167,13 +169,20 @@ def work(step):
                       "lower MEMORY_GB in repo/config.env")
     except Exception:
         pass
-    if not cfg.get("TRACE_CMD_TEMPLATE"):
-        step.warn("TRACE_CMD_TEMPLATE is empty. It must be filled in before skill 11 "
-                  "(skill 09 downloads the TRACE README that explains the command).")
+    missing_trace = [n for n in ("trace-extract", "trace-infer", "trace-summarize")
+                     if not (Path(sys.executable).parent / n).exists() and not pc.have(n)]
+    if missing_trace:
+        later.append("TRACE (skills 11 and 14; run: " + sys.executable + " -m pip install "
+                     "'git+https://github.com/YulinZhang9806/trace.git')")
+        step.warn("TRACE commands not found: " + " ".join(missing_trace) + ". Install TRACE "
+                  f"into this environment before skill 11: {sys.executable} -m pip install "
+                  "'git+https://github.com/YulinZhang9806/trace.git'")
 
     if problems:
         step.fail("; ".join(problems))
-    return "OK", f"environment ready for {mode} input on {', '.join(step.metrics['chromosomes'])}"
+    return "OK", (f"environment ready for {mode} input on "
+                  f"{', '.join(step.metrics['chromosomes'])} "
+                  f"(pipeline version {pc.PIPELINE_VERSION})")
 
 
 if __name__ == "__main__":

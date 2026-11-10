@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""SKILL 09: download TRACE software, the authors' pipeline and published tracts from Zenodo."""
+"""SKILL 09: check that TRACE is installed, and download the archaic tracts
+published with the paper (used by skill 15 for comparison)."""
 import json
 import sys
 import urllib.request
@@ -9,19 +10,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pipeline_common as pc  # noqa: E402
 
 NAME = "09-fetch-trace"
+PIP = "'git+https://github.com/YulinZhang9806/trace.git'"
 
 
 def zenodo_files(step, record):
-    """Return (record_id, [(filename, url, size)]) for a Zenodo record or DOI number."""
+    """Return (record_id, [(filename, url, size)]) for a Zenodo record."""
     urls = [f"https://zenodo.org/api/records/{record}"]
     try:  # a concept DOI redirects to the latest version
         with urllib.request.urlopen(f"https://doi.org/10.5281/zenodo.{record}", timeout=60) as r:
-            final = r.geturl().rstrip("/")
-            rid = final.rsplit("/", 1)[-1]
+            rid = r.geturl().rstrip("/").rsplit("/", 1)[-1]
             if rid.isdigit() and rid != record:
                 urls.append(f"https://zenodo.org/api/records/{rid}")
     except Exception as e:  # noqa: BLE001
-        step.log(f"doi.org lookup for {record} failed: {e}", echo=False)
+        step.log(f"doi.org lookup for {record} failed: {e}")
     last = None
     for u in urls:
         try:
@@ -37,9 +38,7 @@ def zenodo_files(step, record):
                 return str(meta.get("id", record)), files
         except Exception as e:  # noqa: BLE001
             last = e
-    step.fail(f"could not list files for Zenodo record {record} ({last}). Ask the user to download "
-              f"https://doi.org/10.5281/zenodo.{record} by hand into the folder named in this "
-              "skill's instructions.")
+    raise pc.StepError(f"could not list files for Zenodo record {record} ({last})")
 
 
 def fetch(step, record, dest):
@@ -50,7 +49,8 @@ def fetch(step, record, dest):
     total = sum(s or 0 for _, _, s in files) / 1e9
     step.log(f"record {rid}: {len(files)} file(s), {total:.2f} GB")
     if total > pc.free_gb(dest) * 0.8:
-        step.fail(f"Zenodo record {rid} needs {total:.1f} GB but only {pc.free_gb(dest):.1f} GB is free")
+        raise pc.StepError(f"Zenodo record {rid} needs {total:.1f} GB but only "
+                           f"{pc.free_gb(dest):.1f} GB is free")
     for name, url, _ in files:
         f = pc.download(step, url, dest / "archives" / name)
         if name.lower().endswith((".zip", ".tar.gz", ".tgz", ".tar")):
@@ -66,34 +66,36 @@ def fetch(step, record, dest):
 def work(step):
     cfg = step.cfg
     pc.require(step, "00-check-env")
-    soft = fetch(step, cfg.get("TRACE_SOFTWARE_RECORD"), pc.tools(cfg, "trace_software", "x").parent)
-    pipe = fetch(step, cfg.get("TRACE_PIPELINE_RECORD"), pc.tools(cfg, "trace_pipeline", "x").parent)
-    step.progress("downloading published archaic tracts (Trace_data)")
-    dat = fetch(step, cfg.get("TRACE_DATA_RECORD"), pc.data(cfg, "trace_data", "x").parent)
 
-    readmes = sorted(str(p) for d in (soft, pipe) for p in d.rglob("*")
-                     if p.is_file() and p.name.lower().startswith("readme"))
-    installers = sorted(str(p) for p in soft.rglob("*")
-                        if p.name in ("setup.py", "pyproject.toml", "environment.yml",
-                                      "requirements.txt", "Makefile", "CMakeLists.txt"))
-    snakefiles = sorted(str(p) for p in pipe.rglob("*") if p.name in ("Snakefile", "config.yaml",
-                                                                        "config.yml"))
-    step.metrics.update({"trace_software_dir": str(soft), "trace_pipeline_dir": str(pipe),
-                         "trace_data_dir": str(dat), "readme_files": readmes,
-                         "install_files": installers, "pipeline_config_files": snakefiles})
-    # the agent cannot open files, so hand it the start of the TRACE README
-    main_readme = next((Path(r) for r in readmes if str(soft) in r), None) or \
-        (Path(readmes[0]) if readmes else None)
-    if main_readme:
-        text = main_readme.read_text(errors="replace")
-        step.extra["trace_readme_preview"] = text[:6000] + ("\n[... cut ...]" if len(text) > 6000 else "")
-        step.extra["trace_readme_file"] = pc.rel(main_readme)
-    if not cfg.get("TRACE_CMD_TEMPLATE"):
-        step.warn("TRACE_CMD_TEMPLATE is still empty. Before skill 11, the user (or you, by "
-                  "reading trace_readme_preview in this result) must install TRACE "
-                  "and set TRACE_CMD_TEMPLATE in repo/config.env. Placeholders: {trees} {chrom} "
-                  "{start} {end} {haps} {hap_file} {t} {out} {threads} {trace_dir} {map}.")
-    return "OK", f"TRACE resources downloaded; {len(readmes)} README file(s) to read"
+    # 1. TRACE itself is a Python package (MIT licence) providing three commands
+    found, missing = {}, []
+    for name in ("trace-extract", "trace-infer", "trace-summarize"):
+        p = Path(sys.executable).parent / name
+        if p.exists():
+            found[name] = str(p)
+        elif pc.have(name):
+            found[name] = name
+        else:
+            missing.append(name)
+    step.metrics.update({"trace_commands": found, "python": sys.executable})
+    if missing:
+        step.fail(f"TRACE is not installed in this environment: {' '.join(missing)} not found. "
+                  f"Ask the user to run: {sys.executable} -m pip install {PIP}")
+
+    # 2. published archaic tracts, for the comparison in skill 15
+    dat = pc.data(cfg, "trace_data", "x").parent
+    step.metrics["trace_data_dir"] = str(dat)
+    try:
+        step.progress("downloading the published archaic tracts (Trace_data)")
+        fetch(step, cfg.get("TRACE_DATA_RECORD"), dat)
+        step.metrics["trace_data_downloaded"] = True
+    except pc.StepError as e:
+        step.metrics["trace_data_downloaded"] = False
+        step.warn("could not download the published tracts from Zenodo "
+                  f"(10.5281/zenodo.{cfg.get('TRACE_DATA_RECORD')}): {str(e)[:200]}. The run can "
+                  "continue; skill 15 will simply skip the comparison with the published tracts. "
+                  f"To add it later, the user can download that record by hand into {pc.rel(dat)}.")
+    return "OK", f"TRACE installed ({len(found)} commands found)"
 
 
 if __name__ == "__main__":

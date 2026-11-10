@@ -22,12 +22,11 @@ def work(step):
                            "Super-archaic ancestry is only expected inside Denisovan tracts, "
                            "which are common mainly in Oceanian and some Asian genomes.")
     t = cfg.int("TRACE_T_SUPER")
-    windows = [w for w in pc.read_windows(cfg)
-               if any(d["chrom"] == w["chrom"] and d["start"] < w["end"] and d["end"] > w["start"]
-                      for d in den)]
-    step.log(f"{len(windows)} ARG windows overlap Denisovan segments")
-    outs = pc.run_trace_windows(step, t, f"t{t}", windows)
-    deep = pc.collect_trace_segments(step, outs)
+    # TRACE runs genome-wide at the deeper time cutoff; the result is then
+    # intersected with the Denisovan segments found in skill 13.
+    deep, _ = pc.run_trace(step, t, f"t{t}", cfg.float("SUPER_MIN_SEG_KB") * 1000,
+                           cfg.float("SUPER_MIN_SEG_CM"))
+    step.metrics["deep_segments_genome_wide"] = len(deep)
 
     pieces = []
     for s in deep:
@@ -39,7 +38,7 @@ def work(step):
                 pieces.append({"chrom": s["chrom"], "start": a, "end": b, "hap": s["hap"],
                                "parent_start": d["start"], "parent_end": d["end"]})
     pieces = pc.filter_segments(cfg, pieces, cfg.float("SUPER_MIN_SEG_KB") * 1000 - 1,
-                                cfg.float("SUPER_MIN_SEG_CM") - 1e-9)
+                                cfg.float("SUPER_MIN_SEG_CM") - 1e-9)  # recompute cM for the overlap
     max_aff = cfg.float("SUPER_MAX_AFFINITY")
     alleles = {}
     for p in pieces:

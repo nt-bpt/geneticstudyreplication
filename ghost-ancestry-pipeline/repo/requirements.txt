@@ -5,3 +5,7 @@ CrossMap
 tskit
 numpy
 google-adk>=2.13
+
+# TRACE itself (MIT). pip cannot resolve this from a plain requirements line on
+# every setup, so install it explicitly:
+#   pip install 'git+https://github.com/YulinZhang9806/trace.git'

@@ -9,6 +9,32 @@ Input is **either** two FASTQ files (`FASTQ_R1`, `FASTQ_R2`) **or** one CRAM/BAM
 (`INPUT_FILE`, plus `INPUT_REFERENCE` for a CRAM). A GRCh38 alignment with `chr` names is used
 directly; anything else is converted back to reads and realigned to GRCh38.
 
+## Check it works before running a real genome
+
+A full run takes days, so test the whole chain first on simulated data with a
+known answer:
+
+```
+pip install msprime
+python testdata/make_test_data.py --out testdata/fixture
+cp testdata/fixture/config.env.test config.env     # then set RELATE_DIR and BEAGLE_JAR
+# run skills 00-16, then:
+python testdata/check_result.py --fixture testdata/fixture
+```
+
+This runs in minutes on a simulated 5 Mb region carrying a planted archaic
+introgression event, using the real tools, and reports how much of the planted
+signal was recovered. See `testdata/README.md` for what it does and does not
+prove.
+
+## Before publishing this anywhere
+
+Read `repo/THIRD-PARTY.md`. The short version: the pipeline bundles no other
+program or dataset, and the top-level `.gitignore` keeps your genetic data,
+downloaded data and third-party programs out of git. Relate is licensed for
+academic non-commercial use and must not be redistributed, so never commit
+`repo/tools/`. Do not commit the paper PDF.
+
 ## Layout
 
 The agent's working directory holds two folders: `.agent/skills/` (the skills) and
@@ -29,6 +55,7 @@ The agent's working directory holds two folders: `.agent/skills/` (the skills) a
     ├── AGENTS.md             instructions for the agent (use as its instruction)
     ├── adk_agent_example.py  example ADK agent wiring
     ├── requirements.txt      Python packages (pip)
+    ├── testdata/             simulated test data with known truth, and a checker
     ├── README.md
     ├── build_skills.py       regenerates .agent/skills from lib/ (maintenance only)
     ├── lib/                  master copy of pipeline_common.py
@@ -76,9 +103,12 @@ No conda needed. Python 3.8+ is required.
    licence before other use. To use SINGER instead, set `ARG_METHOD=singer` and `SINGER_DIR`.
 4. `cp repo/config.env.example repo/config.env`, set the input files and `SAMPLE_NAME`.
    Leave `CHROMOSOMES=22` for the pilot run.
-5. After skill 09 has downloaded TRACE, install it as its README says (in the same virtual
-   environment if it is a Python package) and set `TRACE_CMD_TEMPLATE` (the command must
-   write its segments to `{out}`).
+5. Install TRACE into the same environment (it is a Python package, MIT licence):
+   `pip install 'git+https://github.com/YulinZhang9806/trace.git'`. It provides
+   `trace-extract`, `trace-infer` and `trace-summarize`, which skills 11 and 14 call
+   themselves, so there is no TRACE command to configure.
+6. Optional: install `bedtools` if you want to use an accessibility mask
+   (`TRACE_INCLUDE_REGIONS`), which is what the paper did and which TRACE needs bedtools for.
 
 ## Running
 
@@ -109,14 +139,17 @@ through ADK with no `.venv` on the search path. The converted trees load in tski
 haplotypes are the last two sample nodes as skill 08 assumes, and an interrupted run resumes at
 the right stage. The synthetic genotypes are random, so this checks that the steps work, not how
 many archaic segments Relate lets TRACE find.
-It has **not** run against the real TRACE, Beagle or download sites, which were unreachable
-from my sandbox, nor with a live model driving the calls. Check these first, on the chr22
-pilot:
+Skills 09, 11 and 14 were then tested with the **real TRACE** (installed from its GitHub
+repository): all three of its commands, at both time cutoffs (t = 15,000 and t = 31,500), with
+the resulting segments flowing through labelling, gene annotation and the report. TRACE's own
+example data reproduces its documented output.
+It has **not** run against the real Beagle or the download sites, which were unreachable from
+my sandbox, nor with a live model driving the calls. Check these first, on the chr22 pilot:
 
 | Item | Where | Why |
 |---|---|---|
-| TRACE command | `TRACE_CMD_TEMPLATE` | TRACE's command line isn't in the paper; read its README |
-| TRACE output format | skill 11 log | The parser detects chrom/start/end/hap columns; set `TRACE_OUTPUT_COLUMNS` if it guesses wrong |
+| Accessibility mask | `TRACE_INCLUDE_REGIONS` | Empty by default, so poorly mappable regions are kept; the paper used the 1000 Genomes strict mask (needs bedtools) |
+| Posterior threshold | `TRACE_POSTERIOR` | TRACE's own default (0.9); the paper's value is in its supplementary text |
 | Relate parameters | `RELATE_MU`, `RELATE_N` | `RELATE_N` is the HAPLOID Ne (2x diploid); defaults are Relate's own documented example values |
 | Mappability mask | `RELATE_MASK` | Optional but recommended for real data; without it, poorly mappable regions are kept |
 | SINGER options (with `ARG_METHOD=singer`) | `SINGER_CMD_TEMPLATE`, `SINGER_CONVERT_TEMPLATE` | Written from SINGER's documented usage; compare with `singer_master -h` |
