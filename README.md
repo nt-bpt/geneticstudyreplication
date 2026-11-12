@@ -35,7 +35,7 @@ Every pipeline can be driven by an agent. This repository includes a small Go la
 ### Requirements for the launcher
 
 - Go 1.26 or later (Go downloads the toolchain version named in `go.mod` if needed).
-- A running Ollama server and a model that supports tool calling.
+- A running Ollama server with the default model pulled (`ollama pull muse-glimmer:30b-q4_K_M`). Any other model must support tool calling.
 
 ### Launcher settings
 
@@ -43,13 +43,13 @@ Every pipeline can be driven by an agent. This repository includes a small Go la
 |---|---|---|
 | `PIPELINE` | Folder name of the pipeline to run, for example `trio-pipeline`. Required. | none |
 | `PIPELINE_AGENT` | Folder inside the pipeline that holds `skills/`. | `.agent` |
-| `OLLAMA_MODEL` | Ollama model name. | `llama3.1` |
+| `OLLAMA_MODEL` | Ollama model name. | `muse-glimmer:30b-q4_K_M` |
 | `OLLAMA_HOST` | Ollama server address. | `http://localhost:11434` |
 
 Run it from the repository root:
 
 ```bash
-PIPELINE=trio-pipeline OLLAMA_MODEL=llama3.1 go run . console     # chat in the terminal
+PIPELINE=trio-pipeline go run . console     # chat in the terminal
 PIPELINE=trio-pipeline go run . web api webui                     # web UI
 ```
 

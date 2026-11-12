@@ -3,7 +3,7 @@
 //
 // Run it from the repository root, e.g.
 //
-//	PIPELINE=ghost-ancestry-pipeline OLLAMA_MODEL=llama3.1 go run . console
+//	PIPELINE=ghost-ancestry-pipeline go run . console
 //	PIPELINE=trio-pipeline go run . web api webui
 //
 // Settings (environment variables):
@@ -13,7 +13,7 @@
 //	                 psi-genetics-pipeline, striatum-project.
 //	PIPELINE_AGENT   folder name of the agent folder inside the pipeline that
 //	                 holds skills/ (default ".agent").
-//	OLLAMA_MODEL     Ollama model name (default "llama3.1"). It must support
+//	OLLAMA_MODEL     Ollama model name (default "muse-glimmer:30b-q4_K_M"). It must support
 //	                 tool calling.
 //	OLLAMA_HOST      Ollama server (default "http://localhost:11434").
 //
@@ -60,7 +60,7 @@ import (
 const (
 	defaultAgentDir   = ".agent"
 	defaultOllamaHost = "http://localhost:11434"
-	defaultModel      = "llama3.1"
+	defaultModel      = "muse-glimmer:30b-q4_K_M"
 
 	// Every pipeline call returns in seconds (long work runs in the
 	// background), so the timeout only guards against a stuck call.
