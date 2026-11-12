@@ -1,6 +1,0 @@
-# Python packages for personal-pipeline  (pip install -r requirements.txt)
-# The analysis code uses only the Python 3 standard library, so there is nothing to pip install.
-
-# Not installable with pip - install with conda/apt:
-#   samtools, bcftools, tabix, bgzip (htslib), bwa (or bwa-mem2, FASTQ input only), curl
-#   conda install -c bioconda samtools bcftools htslib bwa

@@ -43,6 +43,7 @@ The agent's working directory holds two folders: `.agent/skills/` (the skills) a
 
 ```
 <working directory>/          start the agent here
+├── AGENTS.md                 instructions for the agent (use as its instruction)
 ├── .agent/skills/
 │   └── NN-name/              one ADK skill per folder (17 in all)
 │       ├── SKILL.md            frontmatter `name: NN-name` (matches the folder)
@@ -52,7 +53,6 @@ The agent's working directory holds two folders: `.agent/skills/` (the skills) a
 └── repo/
     ├── config.env            your settings (copy of config.env.example)
     ├── config.env.example
-    ├── AGENTS.md             instructions for the agent (use as its instruction)
     ├── adk_agent_example.py  example ADK agent wiring
     ├── requirements.txt      Python packages (pip)
     ├── testdata/             simulated test data with known truth, and a checker

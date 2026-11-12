@@ -13,11 +13,11 @@ The output is `results/psi-genetics-user-report.md`. It reports genotypes beside
 
 ```
 <root>/
+├── AGENTS.md                instructions for the agent
 ├── .agent/                  scripts; run by the framework, not visible to the agent
 │   ├── lib/psi-common.py
 │   └── skills/<skill>/      SKILL.md, <skill>.sh, <skill>.py
 └── repo/                    the agent's workspace
-    ├── AGENTS.md            instructions for the agent
     ├── PIPELINE.md
     ├── config/run-config.json
     ├── input/               small input files

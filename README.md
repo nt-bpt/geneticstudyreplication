@@ -1,6 +1,6 @@
 # Genetic Study Replication Pipelines
 
-Five experimental pipelines that try to re-run, on one person's data, the analyses described in a handful of published papers and preprints. Each is a set of "skills" (a `SKILL.md` plus a script) and an instruction file (`AGENTS.md` or `AGENT.md`) written to be driven by an AI agent.
+Five experimental pipelines that try to re-run, on one person's data, the analyses described in a handful of published papers and preprints. Each is a set of "skills" (a `SKILL.md` plus a script) and an instruction file (`AGENTS.md`) written to be driven by an AI agent.
 
 > **Read [DISCLAIMER.md](DISCLAIMER.md) first.** These pipelines were written by Claude (an AI model made by Anthropic), are for entertainment and experimentation only, are not validated, and must not be used for medical, health, ancestry, legal or any other real decision.
 
@@ -8,10 +8,10 @@ Five experimental pipelines that try to re-run, on one person's data, the analys
 
 | Folder | What it does | Input | Agent instructions |
 |---|---|---|---|
-| [`ghost-ancestry-pipeline`](ghost-ancestry-pipeline) | Applies the approach of Zhang et al., *Science* 2026 (doi:10.1126/science.aef8874): align, genotype and phase one genome, add it to a 503-sample 1000 Genomes cohort, build genealogies with Relate, run TRACE, and label segments as Neanderthal / Denisovan / Ghost. Denisovan segments are screened for super-archaic pieces. | Two FASTQ files, or one CRAM/BAM | `repo/AGENTS.md` |
-| [`personal-pipeline`](personal-pipeline) | Checks whether one person's genome looks unusual at the chr3 region (GRCh38, about 75.5 Mb) flagged by Rempel (2025): soft-clips, split reads, discordant pairs, mapping quality, depth, heterozygous allele balance, and gnomAD frequencies of calls. | CRAM, BAM or FASTQ | `AGENT.md` |
-| [`trio-pipeline`](trio-pipeline) | Tries to reproduce the preprint's "nonparental allele" clusters in the public 1000 Genomes trios (for example HG01505 and HG02293 at chr3:75.5 Mb), including the preprint's own method and context checks (segmental duplications, structural variants, background rate). | Public 1000 Genomes files, downloaded by the pipeline | `AGENT.md` |
-| [`psi-genetics-pipeline`](psi-genetics-pipeline) | Compares one person's genotypes with the sites reported in two studies (Wahbeh et al. 2021 and 2026, *EXPLORE*): rs117910193 (TNRC18) and a lookup of 212 rsIDs. It writes a report that sets the genotypes beside what the studies found. It does not measure anything about psychic ability. | Array raw data (23andMe, AncestryDNA, MyHeritage), VCF, CRAM, BAM or FASTQ | `repo/AGENTS.md` |
+| [`ghost-ancestry-pipeline`](ghost-ancestry-pipeline) | Applies the approach of Zhang et al., *Science* 2026 (doi:10.1126/science.aef8874): align, genotype and phase one genome, add it to a 503-sample 1000 Genomes cohort, build genealogies with Relate, run TRACE, and label segments as Neanderthal / Denisovan / Ghost. Denisovan segments are screened for super-archaic pieces. | Two FASTQ files, or one CRAM/BAM | `AGENTS.md` |
+| [`personal-pipeline`](personal-pipeline) | Removed. It contains no logic; see <https://starseedgenetics.com/> instead. | n/a | n/a |
+| [`trio-pipeline`](trio-pipeline) | Tries to reproduce the preprint's "nonparental allele" clusters in the public 1000 Genomes trios (for example HG01505 and HG02293 at chr3:75.5 Mb), including the preprint's own method and context checks (segmental duplications, structural variants, background rate). | Public 1000 Genomes files, downloaded by the pipeline | `AGENTS.md` |
+| [`psi-genetics-pipeline`](psi-genetics-pipeline) | Compares one person's genotypes with the sites reported in two studies (Wahbeh et al. 2021 and 2026, *EXPLORE*): rs117910193 (TNRC18) and a lookup of 212 rsIDs. It writes a report that sets the genotypes beside what the studies found. It does not measure anything about psychic ability. | Array raw data (23andMe, AncestryDNA, MyHeritage), VCF, CRAM, BAM or FASTQ | `AGENTS.md` |
 | [`striatum-project`](striatum-project) | Measures the caudate, putamen and the tissue between them on a T1 brain MRI (FreeSurfer SynthSeg) and compares the numbers with age- and sex-matched IXI reference subjects. | DICOM folder or NIfTI T1 scan | `AGENTS.md` |
 
 Each skill writes a `results/<skill>.json` with a status (`OK`, `WARN`, `FAIL`, `SKIPPED`), a verdict and metrics, and a log in `logs/`. The agent is told to report only numbers that come from those files.
@@ -20,9 +20,9 @@ Each skill writes a `results/<skill>.json` with a status (`OK`, `WARN`, `FAIL`, 
 
 ```
 <pipeline>/
-├── AGENTS.md or AGENT.md   instructions given to the agent
+├── AGENTS.md               instructions given to the agent
 ├── .agent/skills/<name>/   one folder per step: SKILL.md and its script(s)
-├── config.env              settings (personal and trio pipelines)
+├── config.env              settings (trio pipeline)
 └── workspace/ or repo/     the agent's working area; outputs are written here
 ```
 
@@ -70,22 +70,11 @@ MANUAL_DIR=/path/to/downloads bash workspace/run_all.sh   # files you downloaded
 CHROM=3 bash .agent/skills/03_npa_scan/03_npa_scan.sh     # one skill
 ```
 
-Or with the launcher: `PIPELINE=trio-pipeline go run . console`. Results are in `workspace/results/`, with the final report in `FINAL_REPORT.txt`. See [`trio-pipeline/README.md`](trio-pipeline/README.md) and `AGENT.md`.
+Or with the launcher: `PIPELINE=trio-pipeline go run . console`. Results are in `workspace/results/`, with the final report in `FINAL_REPORT.txt`. See [`trio-pipeline/README.md`](trio-pipeline/README.md) and `AGENTS.md`.
 
 #### `personal-pipeline`
 
-Needs `samtools`, `bcftools`, `bwa` and `htslib` (for example `conda install -c bioconda samtools bcftools bwa htslib`), `curl` and Python 3. In `personal-pipeline/config.env`, set the input:
-
-- `INPUT_TYPE=cram` or `bam`, and `INPUT_FILE=/path/file.cram` (add `INPUT_REFERENCE` if a CRAM needs its reference), or
-- `INPUT_TYPE=fastq`, with `FASTQ_R1` and `FASTQ_R2`. Aligning a whole genome takes hours to days.
-
-Then, from inside `personal-pipeline/`:
-
-```bash
-bash workspace/run_all.sh
-```
-
-or with the launcher: `PIPELINE=personal-pipeline go run . console`. The final report is `workspace/results/FINAL_REPORT.txt`. See [`personal-pipeline/AGENT.md`](personal-pipeline/AGENT.md).
+Removed. There is nothing to run here; use <https://starseedgenetics.com/> instead. This repository is not affiliated with that site (see the disclaimer).
 
 #### `ghost-ancestry-pipeline`
 

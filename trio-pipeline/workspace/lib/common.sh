@@ -6,8 +6,8 @@
 #  * Every skill writes  results/<skill>.json  and a log in  logs/ (both inside workspace/).
 #  * Findings are shared between skills through  state.env  (KEY="value" lines).
 
-# Layout (process root = where config.env and AGENT.md live; skills are run FROM there):
-#   <proc>/config.env  <proc>/AGENT.md  <proc>/.agent/skills/*      (not visible to the agent)
+# Layout (process root = where config.env and AGENTS.md live; skills are run FROM there):
+#   <proc>/config.env  <proc>/AGENTS.md  <proc>/.agent/skills/*      (not visible to the agent)
 #   <proc>/workspace/{lib,py,resources,run_all.sh}  + data, bam, vcf, ref, results, logs, tmp, state.env  (the agent's world)
 PROC_ROOT="${PROC_ROOT:-$PWD}"
 [ -f "$PROC_ROOT/config.env" ] || PROC_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"   # fallback if started elsewhere

@@ -1,6 +1,0 @@
-style	contig_name	where_you_see_it
-ucsc	chr3	UCSC hg38, 1000 Genomes GRCh38 reference, gnomAD
-ensembl	3	Ensembl FASTA/VCFs
-genbank	CM000665.2	NCBI GenBank-style FASTA (what your first alignment inherited)
-refseq	NC_000003.12	NCBI RefSeq-style FASTA
-# GRCh38 chr3 length = 198295559 ; GRCh37 chr3 length = 198022430 (the pipeline refuses GRCh37 data).

@@ -10,7 +10,7 @@ import (
 // Every pipeline's skills must load, including the underscore-named ones.
 func TestPipelinesLoad(t *testing.T) {
 	for _, name := range []string{
-		"ghost-ancestry-pipeline", "personal-pipeline", "psi-genetics-pipeline",
+		"ghost-ancestry-pipeline", "psi-genetics-pipeline",
 		"striatum-project", "trio-pipeline",
 	} {
 		t.Run(name, func(t *testing.T) {

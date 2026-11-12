@@ -2,7 +2,7 @@
 
 Folder layout (the *process folder* is this one):
 
-    config.env  AGENT.md  README.md
+    config.env  AGENTS.md  README.md
     .agent/skills/<name>/{SKILL.md,<name>.sh}    skills, executed from the process folder
     workspace/{lib,py,resources,run_all.sh}       the agent's world; outputs (data, results, logs ...) are written here too
 
@@ -13,4 +13,4 @@ From a shell, in the process folder:
     MANUAL_DIR=/path/to/downloads bash workspace/run_all.sh
     CHROM=3 bash .agent/skills/03_npa_scan/03_npa_scan.sh
 
-Needs: bcftools, tabix, bgzip, curl, python3 with numpy and cyvcf2. See AGENT.md.
+Needs: bcftools, tabix, bgzip, curl, python3 with numpy and cyvcf2. See AGENTS.md.

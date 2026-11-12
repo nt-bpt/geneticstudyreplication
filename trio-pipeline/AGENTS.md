@@ -1,4 +1,4 @@
-# AGENT — 1000 Genomes trio check (nonparental-allele clusters)
+# AGENTS.md — 1000 Genomes trio check (nonparental-allele clusters)
 
 
 ## How skills are called

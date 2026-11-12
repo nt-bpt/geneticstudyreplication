@@ -17,9 +17,8 @@ import (
 
 // looseSource reads skills from <dir>/<skill>/SKILL.md like
 // skill.NewFileSystemSource, but does not enforce the agentskills.io naming
-// rule (lowercase letters, digits and hyphens). The personal-pipeline and
-// trio-pipeline skills are named like "03_align_fastq", which the strict
-// source rejects. The skill name must still equal its folder name.
+// rule (lowercase letters, digits and hyphens). The trio-pipeline skills are
+// named like "03_npa_scan", which the strict source rejects. The skill name must still equal its folder name.
 type looseSource struct {
 	fsys fs.FS
 }

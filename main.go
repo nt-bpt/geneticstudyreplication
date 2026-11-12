@@ -9,7 +9,7 @@
 // Settings (environment variables):
 //
 //	PIPELINE         folder name of the pipeline to run (required), e.g.
-//	                 ghost-ancestry-pipeline, personal-pipeline, trio-pipeline,
+//	                 ghost-ancestry-pipeline, trio-pipeline,
 //	                 psi-genetics-pipeline, striatum-project.
 //	PIPELINE_AGENT   folder name of the agent folder inside the pipeline that
 //	                 holds skills/ (default ".agent").
@@ -22,7 +22,7 @@
 //     load_skill, load_skill_resource),
 //  2. a run_skill_script tool that runs a script of a skill on this machine,
 //     from the pipeline folder (the folder that holds .agent/skills/),
-//  3. the pipeline's AGENTS.md / AGENT.md as its instruction, passed through
+//  3. the pipeline's AGENTS.md (in the pipeline folder) as its instruction, passed through
 //     an instruction provider so ADK does not apply {placeholder} templating
 //     to it.
 //
@@ -71,9 +71,8 @@ const (
 	maxOutputBytes  = 32 * 1024
 )
 
-// instructionFiles are tried in order, first in the pipeline folder, then in
-// its repo/ folder.
-var instructionFiles = []string{"AGENTS.md", "AGENT.md"}
+// instructionFile sits in the root of every pipeline folder.
+const instructionFile = "AGENTS.md"
 
 // pipeline describes the selected pipeline folder.
 type pipeline struct {
@@ -192,18 +191,11 @@ func listPipelines(dir string) []string {
 }
 
 func readInstruction(p *pipeline) (string, error) {
-	for _, base := range []string{p.dir, p.root} {
-		for _, f := range instructionFiles {
-			b, err := os.ReadFile(filepath.Join(base, f))
-			if err == nil {
-				return string(b), nil
-			}
-			if !errors.Is(err, os.ErrNotExist) {
-				return "", err
-			}
-		}
+	b, err := os.ReadFile(filepath.Join(p.dir, instructionFile))
+	if err != nil {
+		return "", fmt.Errorf("pipeline %q: %w", p.name, err)
 	}
-	return "", fmt.Errorf("pipeline %q has no %s in %s or %s", p.name, strings.Join(instructionFiles, " or "), p.dir, p.root)
+	return string(b), nil
 }
 
 var nonIdent = regexp.MustCompile(`[^A-Za-z0-9_]+`)
