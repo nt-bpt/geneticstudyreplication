@@ -35,7 +35,7 @@ Every pipeline can be driven by an agent. This repository includes a small Go la
 ### Requirements for the launcher
 
 - Go 1.26 or later (Go downloads the toolchain version named in `go.mod` if needed).
-- A running Ollama server with the default model pulled (`ollama pull muse-glimmer:30b-q4_K_M`). Any other model must support tool calling.
+- A running Ollama server with the default model pulled (`ollama pull gemma4:34b`). Any other model must support tool calling.
 
 ### Launcher settings
 
@@ -43,7 +43,7 @@ Every pipeline can be driven by an agent. This repository includes a small Go la
 |---|---|---|
 | `PIPELINE` | Folder name of the pipeline to run, for example `trio-pipeline`. Required. | none |
 | `PIPELINE_AGENT` | Folder inside the pipeline that holds `skills/`. | `.agent` |
-| `OLLAMA_MODEL` | Ollama model name. | `muse-glimmer:30b-q4_K_M` |
+| `OLLAMA_MODEL` | Ollama model name. | `gemma4:e4b` |
 | `OLLAMA_HOST` | Ollama server address. | `http://localhost:11434` |
 
 Run it from the repository root:
@@ -54,6 +54,23 @@ PIPELINE=trio-pipeline go run . web api webui                     # web UI
 ```
 
 The launcher loads the pipeline's skills and instruction file, and gives the agent a `run_skill_script` tool that runs the skill scripts from the pipeline folder. Then tell the agent what to do, for example "run the whole pipeline".
+
+#### Increasing the web UI timeouts
+
+The web server's default timeouts (15s read and write) are too short for a slow local model. Raise them with flags on the `web` and `api` sub-launchers:
+
+```bash
+PIPELINE=trio-pipeline go run . web -write-timeout 30m -read-timeout 30m -idle-timeout 30m api -sse-write-timeout 30m webui
+```
+
+| Flag | Applies to | Default |
+|---|---|---|
+| `-write-timeout` | `web` | 15s |
+| `-read-timeout` | `web` | 15s |
+| `-idle-timeout` | `web` | 60s |
+| `-sse-write-timeout` | `api` | 120s |
+
+Values use Go duration syntax, such as `90s` or `30m`. The launcher also caps each model request at 10 minutes (`modelTimeout`) and each skill script at 600 seconds (`scriptTimeout`), both in [`main.go`](main.go). Edit them there if the model or a script needs longer.
 
 Small local models often struggle with long, multi-step pipelines. If the agent loses track, use a larger model or run the skills yourself as described below.
 

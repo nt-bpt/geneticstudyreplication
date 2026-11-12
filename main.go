@@ -13,7 +13,7 @@
 //	                 psi-genetics-pipeline, striatum-project.
 //	PIPELINE_AGENT   folder name of the agent folder inside the pipeline that
 //	                 holds skills/ (default ".agent").
-//	OLLAMA_MODEL     Ollama model name (default "muse-glimmer:30b-q4_K_M"). It must support
+//	OLLAMA_MODEL     Ollama model name (default "gemma4:e4b"). It must support
 //	                 tool calling.
 //	OLLAMA_HOST      Ollama server (default "http://localhost:11434").
 //
@@ -61,7 +61,7 @@ import (
 const (
 	defaultAgentDir   = ".agent"
 	defaultOllamaHost = "http://localhost:11434"
-	defaultModel      = "muse-glimmer:30b-q4_K_M"
+	defaultModel      = "gemma4:e4b"
 
 	// Every pipeline call returns in seconds (long work runs in the
 	// background), so the timeout only guards against a stuck call.
