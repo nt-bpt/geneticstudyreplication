@@ -28,7 +28,6 @@ by the scripts, not by you.
 | `logs/<skill>.log` | Full skill logs | read when a skill fails |
 | `panels/` | Study site panels and caches | read; `panels/p2-coords-manual.tsv` may be added |
 | `PIPELINE.md` | Setup and config reference | read |
-| `research/psi-genetics-report.md` | Source research behind the panels | read when asked about the studies |
 
 ## Before running
 

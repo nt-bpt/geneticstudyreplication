@@ -1,0 +1,89 @@
+# Personal genetic data, medical images and run outputs must never be committed.
+# Genomes and scans also disclose information about relatives, and a published
+# file cannot be withdrawn. Check `git status --ignored` before `git add`.
+
+# ---- Run outputs, working files, logs -------------------------------------
+**/results/*
+**/work/*
+**/logs/*
+**/psi-work/
+.skill_runtime/
+**/workspace/data/
+
+# ---- Pipeline input and reference data ------------------------------------
+# Keep the README/.gitkeep placeholders, ignore everything else.
+**/input/*
+!**/input/README.md
+!**/input/.gitkeep
+striatum-project/repo/reference/*
+!striatum-project/repo/reference/.gitkeep
+**/reference/GRCh37/
+**/reference/GRCh38/
+**/data/
+**/tools/
+
+# Keep the empty placeholder folders that are tracked
+!**/.gitkeep
+
+# ---- Genomic and imaging file types ----------------------------------------
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.bam
+*.bai
+*.cram
+*.crai
+*.sam
+*.vcf
+*.vcf.gz
+*.vcf.gz.tbi
+*.bcf
+*.csi
+*.tbi
+*.haps
+*.haps.gz
+*.sample.gz
+*.anc
+*.mut
+*.trees
+*.fa
+*.fa.gz
+*.fai
+*.2bit
+*.dcm
+*.nii
+*.nii.gz
+*.mgz
+23andme*.txt
+ancestry*.txt
+genome_*.txt
+*raw_data*.txt
+*raw_data*.zip
+
+# ---- Local configuration and secrets ---------------------------------------
+config.env.local
+.env
+.env.*
+!*.env.example
+license.txt
+freesurfer_license.txt
+
+# ---- Copyrighted papers and supplements ------------------------------------
+*.pdf
+*.docx
+*.xls
+*.xlsx
+
+# ---- Build artefacts, environments, editors --------------------------------
+.venv/
+venv/
+__pycache__/
+*.pyc
+/geneticstudyreplication
+*.exe
+*.test
+*.out
+.vscode/
+.idea/
+.DS_Store

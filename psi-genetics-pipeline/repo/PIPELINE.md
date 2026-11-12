@@ -21,7 +21,6 @@ The output is `results/psi-genetics-user-report.md`. It reports genotypes beside
     ├── PIPELINE.md
     ├── config/run-config.json
     ├── input/               small input files
-    ├── research/            source research report
     ├── panels/              created by 02 (panels, caches)
     ├── results/             created by the skills
     └── logs/                created by the skills
@@ -59,7 +58,6 @@ Each skill writes `results/<skill>.json` (`status`, `verdict`, `metrics`, `warni
 
 ## Known limits
 
-- Paper 1's original calls came from exome data at an intron edge; the paper's control group is unusual (7/9 carriers at a ~10% allele frequency). See the report text.
+- Paper 1's original calls came from exome data at an intron edge; the paper's control group is unusual (7/9 carriers at a ~10% allele frequency).
 - Paper 2's build, strand, genotype encoding and allele direction were never published. Arrays are matched by rsID; strand is checked only where Ensembl alleles are available.
 - A plain (non-g) VCF cannot show homozygous-reference sites; those are reported as NOT_IN_VCF.
-- The research report behind these panels is `research/psi-genetics-report.md`.

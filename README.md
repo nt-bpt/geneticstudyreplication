@@ -125,4 +125,4 @@ The tests check that every pipeline's skills load and that `run_skill_script` re
 
 ## Licence
 
-Apache License 2.0, see [LICENSE](LICENSE). Third-party tools and data used by the pipelines have their own licences; see the disclaimer and `ghost-ancestry-pipeline/repo/THIRD-PARTY.md`.
+MIT License with an added indemnification clause, see [LICENSE](LICENSE). This is a custom licence, not an OSI-approved one. Third-party tools and data used by the pipelines have their own licences; see the disclaimer and `ghost-ancestry-pipeline/repo/THIRD-PARTY.md`.
