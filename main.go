@@ -37,6 +37,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -65,6 +66,8 @@ const (
 	// Every pipeline call returns in seconds (long work runs in the
 	// background), so the timeout only guards against a stuck call.
 	scriptTimeout = 600 * time.Second
+	// Local models can take minutes to answer; this bounds one model request.
+	modelTimeout = 10 * time.Minute
 	// How long to wait for output pipes to close after a script exits; a
 	// background child that inherited them must not block the tool call.
 	scriptWaitDelay = 5 * time.Second
@@ -216,9 +219,10 @@ func newOllamaModel(ctx context.Context, modelName, host string) (model.LLM, err
 		host = "http://" + host // OLLAMA_HOST is often just host:port
 	}
 	return openaimodel.NewModel(ctx, modelName, &openaimodel.ClientConfig{
-		APIKey:  "ollama", // required by the client, ignored by Ollama
-		BaseURL: strings.TrimRight(host, "/") + "/v1",
-		API:     openaimodel.APIChatCompletions,
+		APIKey:     "ollama", // required by the client, ignored by Ollama
+		BaseURL:    strings.TrimRight(host, "/") + "/v1",
+		API:        openaimodel.APIChatCompletions,
+		HTTPClient: &http.Client{Timeout: modelTimeout},
 	})
 }
 
