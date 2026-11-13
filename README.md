@@ -143,3 +143,11 @@ The tests check that every pipeline's skills load and that `run_skill_script` re
 ## Licence
 
 MIT License with an added indemnification clause, see [LICENSE](LICENSE). This is a custom licence, not an OSI-approved one. Third-party tools and data used by the pipelines have their own licences; see the disclaimer and `ghost-ancestry-pipeline/repo/THIRD-PARTY.md`.
+
+## Example Summary
+
+The following are examples of the results from a real test run of the `trio-pipeline`:
+
+![Example Web UI](exampletriowebui.png)
+
+The final report is also available as a text file: `example_trio_FINAL_REPORT.txt`.

@@ -1,0 +1,79 @@
+========================================================================
+TRIO ANALYSIS — nonparental-allele (NPA) clusters, 1000 Genomes 30x phased panel
+========================================================================
+Independent re-implementation of the signal described in an unreviewed preprint (Rempel 2025).
+It does NOT use the author's code; the definition below is mine and may differ from his.
+
+STEPS
+  00_check_env        WARN     environment ready
+      warning: scipy not installed — optional comparisons will be skipped
+  01_download         OK       chr3 VCF verified
+  02_build_trios      OK       602 complete trios
+  03_npa_scan         OK       16 of 602 trios have >=1 hot NPA region (17 regions)
+  04_context_checks   OK       17 regions described; 0 carry none of the explanatory tags
+  05_compare_rempel   OK       listed 100% vs other 2% of trios have a hot region
+  06_baseline         NOT RUN  
+  07_rempel_method    OK       published method on these data: 582 normal / 15 possible / 5 definite of 602 trios (paper: 570/7/4 of 581)
+
+RESULT 1 — do hot NPA regions exist?
+  trios scanned: 602; trios with >=1 hot region: 16; regions: 17
+  high-background trios (NPA rate >= several x cohort median — suspect sample/pedigree problem): 1
+
+RESULT 2 — the claimed window chr3:75440000-75600000
+  hot regions overlapping it: 4 in 3 trios
+    HG01505  75446536-75489420  142 NPAs  log10p=-243.25  tags: segdup_overlap,sv_in_trio,common_alleles,overlaps_focus
+    HG01505  75508641-75516440  81 NPAs  log10p=-243.25  tags: segdup_overlap,sv_in_trio,recurrent_x1,common_alleles,overlaps_focus
+    HG02293  75556946-75591582  27 NPAs  log10p=-97.32  tags: segdup_overlap,sv_in_trio,common_alleles,overlaps_focus
+    HG02812  75519909-75525319  9 NPAs  log10p=-27.89  tags: segdup_overlap,sv_nearby,recurrent_x1,common_alleles,overlaps_focus
+
+RESULT 3 — what the explanatory checks say (top regions)
+  regions checked 17: segdup overlap 6, SV in same trio 13, SV nearby 3, recurrent across trios 2, common alleles 16, rare alleles 0, high-background trio 0
+  regions with NO mundane tag: 0  <- these are the ones worth manual inspection (reads/IGV)
+
+RESULT 4 — baseline
+  not run — without it, 'hot' only means hot relative to each trio's own background, not relative to other chromosomes
+
+RESULT 5 — families from the preprint vs other trios
+  listed 100% vs other 2% of trios have a hot region
+
+RESULT 6 — the preprint's own published method, run on the same VCF (fixed 60 kb windows, any record type)
+  classification (paper's cut-offs on max 60 kb window): normal 582, possible hybrid (10-19) 15, definite hybrid (>=20) 5   [paper: 570 / 7 / 4 of 581]
+  top families:
+    HG01505    max window  207  total NPA records    260  definite
+    HG02293    max window   33  total NPA records     48  definite
+    HG02596    max window   33  total NPA records     56  definite
+    HG02809    max window   27  total NPA records     52  definite
+    HG02602    max window   23  total NPA records     39  definite
+    HG01135    max window   18  total NPA records     29  possible
+    NA10863    max window   18  total NPA records     34  possible
+    HG01611    max window   17  total NPA records     24  possible
+    HG03161    max window   14  total NPA records     31  possible
+    HG03763    max window   14  total NPA records     29  possible
+    HG03236    max window   13  total NPA records     31  possible
+    HG00438    max window   12  total NPA records     28  possible
+  collapsed regions (top 8):
+    HG01505    75464474-75564474  windows 3  max 207  summed 414  unique records in region 207
+    HG01505    75404474-75504474  windows 3  max 164  summed 342  unique records in region 164
+    HG02293    75502606-75602606  windows 3  max 33  summed 51  unique records in region 33
+    HG02596    62671413-62771413  windows 3  max 33  summed 99  unique records in region 33
+    HG02293    75562606-75642606  windows 2  max 28  summed 48  unique records in region 28
+    HG02809    16573229-16673229  windows 3  max 27  summed 77  unique records in region 27
+    HG02602    4059388-4159388  windows 3  max 23  summed 52  unique records in region 23
+    HG01135    65174521-65274521  windows 3  max 18  summed 54  unique records in region 18
+  regions overlapping 75440000-75600000:
+    HG01505    max 207  summed 414  unique 207
+    HG01505    max 164  summed 342  unique 164
+    HG02293    max 33  summed 51  unique 33
+    HG02293    max 28  summed 48  unique 28
+    HG02812    max 9  summed 27  unique 9
+    HG03310    max 7  summed 21  unique 7
+    HG01609    max 6  summed 18  unique 6
+    HG03438    max 6  summed 18  unique 6
+
+READING THE RESULT
+  * A hot region means: many child alleles absent from both listed parents within ~60 informative SNVs, more than that trio's own background predicts.
+  * Tags are possible mundane explanations. A region carrying none of them is unexplained by THESE checks only; it is not evidence of any cause.
+  * Mendelian errors are rarer in the phased panel than in raw calls (phasing can use the pedigree). Hot regions that exist in raw genotypes but not here would be hidden by this choice.
+
+NOT VERIFIED
+  * The focus coordinates and the preprint's exact signal definition. * Family IDs (none bundled). * Cell-line (EBV) artifacts need read-level data (see personal pipeline).
