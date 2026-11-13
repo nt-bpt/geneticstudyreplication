@@ -2,7 +2,7 @@
 
 Five experimental pipelines that try to re-run, on one person's data, the analyses described in a handful of published papers and preprints. Each is a set of "skills" (a `SKILL.md` plus a script) and an instruction file (`AGENTS.md`) written to be driven by an AI agent.
 
-> **Read [DISCLAIMER.md](DISCLAIMER.md) first.** These pipelines were written by Claude (an AI model made by Anthropic), are for entertainment and experimentation only, are not validated, and must not be used for medical, health, ancestry, legal or any other real decision.
+> **Read [DISCLAIMER.md](DISCLAIMER.md) first.** These pipelines were written by  Claude Sonnet 5.5 (an AI model made by Anthropic), are for entertainment and experimentation only, are not validated, and must not be used for medical, health, ancestry, legal or any other real decision.
 
 ## The pipelines
 
@@ -43,7 +43,7 @@ Every pipeline can be driven by an agent. This repository includes a small Go la
 |---|---|---|
 | `PIPELINE` | Folder name of the pipeline to run, for example `trio-pipeline`. Required. | none |
 | `PIPELINE_AGENT` | Folder inside the pipeline that holds `skills/`. | `.agent` |
-| `OLLAMA_MODEL` | Ollama model name. | `gemma4:e4b` |
+| `OLLAMA_MODEL` | Ollama model name. | `gemma4:e4b` or `muse-glimmer:30b-q4_K_M` suggested |
 | `OLLAMA_HOST` | Ollama server address. | `http://localhost:11434` |
 
 Run it from the repository root:
