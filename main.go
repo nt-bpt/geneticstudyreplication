@@ -65,7 +65,7 @@ const (
 
 	// Every pipeline call returns in seconds (long work runs in the
 	// background), so the timeout only guards against a stuck call.
-	scriptTimeout = 600 * time.Second
+	scriptTimeout = 48 * time.Hour
 	// Local models can take minutes to answer; this bounds one model request.
 	modelTimeout = 10 * time.Minute
 	// How long to wait for output pipes to close after a script exits; a
