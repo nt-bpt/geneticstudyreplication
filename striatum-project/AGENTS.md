@@ -11,7 +11,7 @@ AGENTS.md                      this file (the only file in the project root)
 repo/input/<subject>/          the subject's scan (DICOM folder tree or NIfTI)
 repo/work/<subject>/           intermediate files and JSON state passed between skills
 repo/results/<subject>/        report.md and report.json
-repo/reference/                IXI data (ixi/T1/, ixi_demographics.csv) and reference.csv
+repo/reference/                cohort scans (ixi/T1/, dlbs/T1/), demographics CSVs, reference.csv
 repo/lib/striatum/             shared Python code used by the skill scripts
 repo/docs/README.md            human setup guide
 repo/docker/                   Dockerfile and package list
@@ -37,7 +37,8 @@ All data, outputs and documentation live under `repo/`. Run every command from t
 | Skill | Purpose |
 |---|---|
 | `check-environment` | Confirm FreeSurfer/SynthSeg, dcm2niix, Python libs, license. Run first. |
-| `build-reference` | One-time: build `repo/reference/reference.csv` from IXI scans. |
+| `fetch-reference` | One-time: download matched IXI and DLBS T1s into `repo/reference/`. |
+| `build-reference` | One-time: build `repo/reference/reference.csv` from those scans. |
 | `ingest-mri` | DICOM → NIfTI, choose the T1, flag thick slices. |
 | `segment-synthseg` | SynthSeg segmentation, intracranial volume, QC. |
 | `measure-striatum` | Caudate/putamen volumes, asymmetry, bridge zone. |
@@ -48,8 +49,9 @@ All data, outputs and documentation live under `repo/`. Run every command from t
 ## Typical session
 
 1. Run **check-environment**. If anything is missing, tell the user and stop.
-2. If `repo/reference/reference.csv` doesn't exist, run **build-reference** (or tell the user the
-   IXI data is needed; see `repo/docs/README.md`).
+2. If `repo/reference/reference.csv` doesn't exist: run **fetch-reference** if the user has asked
+   for the download (otherwise tell them the reference data is needed; see `repo/docs/README.md`),
+   then **build-reference** once per cohort.
 3. Confirm the scan is in `repo/input/<subject>/` and get the subject's age at scan and sex.
 4. Run **run-full-pipeline**, or the individual skills in order if you need to intervene (e.g.
    choosing the T1 series).

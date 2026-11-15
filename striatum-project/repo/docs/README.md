@@ -24,12 +24,24 @@ Check with: `python3 .agent/skills/check-environment/scripts/check_env.py`
 
 ## 2. Reference cohort (once)
 
-1. Download the IXI T1 archive and `IXI.xls` from https://brain-development.org/ixi-dataset/.
-2. Extract the T1 images into `repo/reference/ixi/T1/`.
-3. From `IXI.xls`, make `repo/reference/ixi_demographics.csv` with columns `subject,age,sex`.
-   `subject` is the image file name without `.nii.gz` (e.g. `IXI002-Guys-0828-T1`); IXI codes sex
-   as 1 = male, 2 = female — write `M`/`F`. Rows without an age can be dropped.
-4. Ask the agent to run the build-reference skill (several hours on CPU; resumable).
+Two open cohorts are scripted: **IXI** (healthy adults, London, 1.5T/3T, CC BY-SA 3.0) and **DLBS**
+(Dallas Lifespan Brain Study, Philips 3T, OpenNeuro ds004856, CC0). Only subjects in your age/sex
+band are kept. Example for a 47-year-old man (age ±15):
+
+```bash
+python3 .agent/skills/fetch-reference/scripts/fetch_reference.py --age-min 32 --age-max 62 --sex M
+python3 .agent/skills/build-reference/scripts/build_reference.py --threads 8
+python3 .agent/skills/build-reference/scripts/build_reference.py --threads 8 \
+    --t1-dir repo/reference/dlbs/T1 --demographics repo/reference/dlbs_demographics.csv
+```
+
+The fetch downloads ~4.5 GB for IXI (deleted after extraction) and ~1 GB for DLBS. The two build
+runs take a few hours on CPU and resume if interrupted.
+
+Optional: OASIS-1 (non-demented adults, 1.5T) is distributed through NITRC/XNAT after
+registration, so it isn't scripted. To add it, put its T1s in `repo/reference/oasis1/T1/`, make
+`repo/reference/oasis1_demographics.csv` (`subject,age,sex,cohort`, keeping only CDR 0) and run
+build-reference with those paths.
 
 ## 3. Your scan
 

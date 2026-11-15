@@ -19,7 +19,7 @@ def check(name, ok, fix=""):
 
 
 check("python >= 3.9", sys.version_info >= (3, 9), "use Python 3.9 or newer")
-for mod, apt in (("numpy", "python3-numpy"), ("scipy", "python3-scipy"), ("nibabel", "python3-nibabel")):
+for mod, apt in (("numpy", "python3-numpy"), ("scipy", "python3-scipy"), ("nibabel", "python3-nibabel"), ("xlrd", "python3-xlrd")):
     try:
         importlib.import_module(mod)
         check(f"python module {mod}", True)

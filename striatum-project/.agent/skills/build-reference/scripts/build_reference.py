@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Build the reference cohort CSV by running SynthSeg + measurement on healthy-volunteer T1s.
 
-Reads  repo/reference/ixi/T1/*.nii.gz
-       repo/reference/ixi_demographics.csv   (columns: subject,age,sex; subject = file name without extension)
+Reads  a cohort's T1 folder and demographics CSV (default: IXI, as written by fetch-reference)
+       demographics columns: subject,age,sex[,cohort]; subject = T1 file name without extension
+       Run once per cohort into the same --out file to combine cohorts.
 Writes repo/reference/reference.csv          (resumable: subjects already in it are skipped)
        repo/work/reference/<subject>/        (intermediate files)
 """
@@ -62,7 +63,8 @@ for t1 in sorted(t1_dir.glob("*.nii*")):
         print(f"skip {sid}: {e}")
         skipped += 1
         continue
-    rows.append({"subject": sid, "age": demo[sid].get("age"), "sex": demo[sid].get("sex"), **m})
+    rows.append({"subject": sid, "age": demo[sid].get("age"), "sex": demo[sid].get("sex"),
+                 "cohort": demo[sid].get("cohort", ""), **m})
     fields = list(dict.fromkeys(k for r in rows for k in r))
     with open(out_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields)

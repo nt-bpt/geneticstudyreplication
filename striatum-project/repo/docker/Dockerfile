@@ -33,7 +33,7 @@ ENV SUBJECTS_DIR=/tmp/fs_subjects \
     PATH=${FREESURFER_HOME}/bin:${FREESURFER_HOME}/fsfast/bin:${FREESURFER_HOME}/tktools:${FREESURFER_HOME}/mni/bin:${PATH}
 
 # Fail the build early if the install path differs from what's assumed above
-RUN test -x ${FREESURFER_HOME}/bin/mri_synthseg && which dcm2niix && python3 -c "import nibabel, scipy, numpy"
+RUN test -x ${FREESURFER_HOME}/bin/mri_synthseg && which dcm2niix && python3 -c "import nibabel, scipy, numpy, xlrd"
 
 # Licence is mounted at run time:  -v /path/license.txt:/license.txt:ro -e FS_LICENSE=/license.txt
 WORKDIR /project

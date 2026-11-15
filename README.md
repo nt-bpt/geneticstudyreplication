@@ -70,7 +70,7 @@ PIPELINE=trio-pipeline go run . web -write-timeout 30m -read-timeout 30m -idle-t
 | `-idle-timeout` | `web` | 60s |
 | `-sse-write-timeout` | `api` | 120s |
 
-Values use Go duration syntax, such as `90s` or `30m`. The launcher also caps each model request at 10 minutes (`modelTimeout`) and each skill script at 600 seconds (`scriptTimeout`), both in [`main.go`](main.go). Edit them there if the model or a script needs longer.
+Values use Go duration syntax, such as `90s` or `30m`. The launcher also caps each model request at 10 minutes (`modelTimeout`) and each skill script at 48 hours (`scriptTimeout`), both in [`main.go`](main.go). Edit them there if the model or a script needs longer.
 
 Small local models often struggle with long, multi-step pipelines. If the agent loses track, use a larger model or run the skills yourself as described below.
 
